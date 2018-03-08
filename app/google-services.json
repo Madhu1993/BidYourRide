@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "810138556643",
+    "firebase_url": "https://bidyourride.firebaseio.com",
+    "project_id": "bidyourride",
+    "storage_bucket": "bidyourride.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:810138556643:android:5bc2429f61868dc5",
+        "android_client_info": {
+          "package_name": "bidyourride.kurama.com.bidyourride"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "810138556643-9fh0c0po5mmg0jtq7302pmk1l3lju13h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVHxb_PKMBpmCZ6V5K4bDnDQfnNg32mws"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

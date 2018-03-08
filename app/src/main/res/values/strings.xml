@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Bid Your Ride</string>
+    <string name="facebook_app_id">519123011821610</string>
+    <string name="skip_for_now">Skip For Now</string>
+    <string name="share">Share</string>
+    <string name="logout">Logout</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="refer_to_a_friend">Share</string>
+    <string name="settings">Settings</string>
+    <string name="userName">Username</string>
+    <string name="author_email">Email ID</string>
+    <string name="profile">Menu</string>
+    <string name="title_activity_sign_in">SignInActivity</string>
+    <string name="email">Email ID</string>
+    <string name="hint_password">Password</string>
+    <string name="sign_in">SIGN IN</string>
+    <string name="sign_up">REGISTER</string>
+    <string name="facebook_provider_id">facebook_provider_id</string>
+    <string name="confirm_logout">Are you sure you want to log out?</string>
+    <string name="hello">Hello All Rides Are Here</string>
+
+</resources>
