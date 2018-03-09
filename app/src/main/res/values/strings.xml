@@ -13,11 +13,16 @@
     <string name="profile">Menu</string>
     <string name="title_activity_sign_in">SignInActivity</string>
     <string name="email">Email ID</string>
+    <string name="origin">Origin</string>
+    <string name="destination">Destination</string>
     <string name="hint_password">Password</string>
     <string name="sign_in">SIGN IN</string>
     <string name="sign_up">REGISTER</string>
     <string name="facebook_provider_id">facebook_provider_id</string>
     <string name="confirm_logout">Are you sure you want to log out?</string>
     <string name="hello">Hello All Rides Are Here</string>
+    <string name="spinner_title">Select Category</string>
+    <string name="category">Category:</string>
+    <string name="Select">Select:</string>
 
 </resources>

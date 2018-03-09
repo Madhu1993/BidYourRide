@@ -19,7 +19,8 @@
             android:layout_alignParentBottom="true"
             app:tabIndicatorColor="@android:color/black"
             app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget"
-            android:background="@drawable/tab_background"/>
+            android:background="@drawable/tab_background"
+            style="@style/MyCustomTabLayout"/>
 
         <android.support.v4.view.ViewPager
             android:id="@+id/main_tab_content"

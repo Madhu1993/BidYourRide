@@ -21,6 +21,9 @@ import bidyourride.kurama.com.bidyourride.fragment.AvailableRidesFragment;
 public class MainActivity extends BaseActivity {
     private FirebaseAuth firebaseAuth;
     private FirebaseUser firebaseUser;
+    public static String POSITION = "POSITION";
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +47,8 @@ public class MainActivity extends BaseActivity {
 
                 R.drawable.add_story,
         };
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
-        ViewPager viewPager =  findViewById(R.id.main_tab_content);
+        tabLayout = findViewById(R.id.tab_layout);
+        viewPager =  findViewById(R.id.main_tab_content);
 
         setupViewPager(viewPager);
 
@@ -83,8 +86,8 @@ public class MainActivity extends BaseActivity {
         switch (item.getItemId()) {
 
             case R.id.action_search:
-                /*Intent settingsIntent = new Intent(this, AwesomeActivity.class);
-                startActivity(settingsIntent);*/
+                Intent settingsIntent = new Intent(this, AddRideActivity.class);
+                startActivity(settingsIntent);
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -94,5 +97,17 @@ public class MainActivity extends BaseActivity {
     public void onPause() {
         super.onPause();
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(POSITION,tabLayout .getSelectedTabPosition());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        viewPager.setCurrentItem(savedInstanceState.getInt(POSITION));
     }
 }

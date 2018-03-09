@@ -4,7 +4,8 @@
     tools:context="hookedtech.tossdown.UserProfileActivity">
     <item
         android:id="@+id/action_search"
-        android:title="Search"
+        android:title=" "
+        android:icon="@drawable/ic_add_black_48dp"
         android:orderInCategory="100"
         app:showAsAction="always" />
 </menu>

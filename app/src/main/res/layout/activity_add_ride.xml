@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusableInTouchMode="true">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dip">
+
+
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dip"
+            android:prompt="@string/spinner_title"
+            android:textAlignment="viewStart" />
+
+        <RelativeLayout
+            android:id="@+id/origin_ll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/spinner"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp">
+
+            <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                android:id="@+id/origin_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_my_location_black_48dp" />
+
+            <LinearLayout
+                android:layout_width="0px"
+                android:layout_height="0px"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+            <EditText
+                android:id="@+id/origin_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/origin_image"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@+id/origin_image"
+                android:ellipsize="end"
+                android:hint="@string/origin"
+                android:inputType="text"
+                android:maxLines="1"
+                android:nextFocusDown="@id/destination_location"
+                android:nextFocusLeft="@id/origin_location"
+                android:nextFocusUp="@id/origin_location"
+                android:paddingTop="5dp"
+                android:textSize="15sp" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/destination_ll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/origin_ll"
+            android:paddingBottom="10dp"
+            android:paddingTop="10dp">
+
+            <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                android:id="@+id/destination_image"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_location_on_black_48dp" />
+
+            <LinearLayout
+                android:layout_width="0px"
+                android:layout_height="0px"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
+
+            <EditText
+                android:id="@+id/destination_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/destination_image"
+                android:layout_alignParentEnd="true"
+                android:layout_toEndOf="@+id/destination_image"
+                android:ellipsize="end"
+                android:hint="@string/destination"
+                android:inputType="text"
+                android:maxLines="1"
+                android:nextFocusLeft="@id/destination_location"
+                android:nextFocusUp="@id/destination_location"
+                android:paddingTop="5dp"
+                android:textSize="15sp" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/activity_main_drawer" />
+</android.support.v4.widget.DrawerLayout>
