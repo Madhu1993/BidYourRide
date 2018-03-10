@@ -5,5 +5,5 @@ package bidyourride.kurama.com.bidyourride;
  */
 
 public class Config {
-    public static final String GOOGLE_API_KEY = "AIzaSyBVHxb_PKMBpmCZ6V5K4bDnDQfnNg32mws";
+    public static final String GOOGLE_API_KEY = "AIzaSyDHmJxQrAx1J9wZUHWD3kuOmcdy1JYD9sU";
 }

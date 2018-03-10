@@ -266,7 +266,7 @@ public class SignInActivity extends AppCompatActivity implements View.OnClickLis
 
     private boolean validateForm() {
         boolean result = true;
-        if (TextUtils.isEmpty(mEmailField.getText().toString())) {
+        if (TextUtils.isEmpty(mEmailField.getText().toString()) ) {
             mEmailField.setError("Required");
             result = false;
         } else {

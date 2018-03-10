@@ -21,8 +21,17 @@
     <string name="facebook_provider_id">facebook_provider_id</string>
     <string name="confirm_logout">Are you sure you want to log out?</string>
     <string name="hello">Hello All Rides Are Here</string>
-    <string name="spinner_title">Select Category</string>
+    <!--<string name="spinner_title">Select Category</string>-->
     <string name="category">Category:</string>
     <string name="Select">Select:</string>
+    <string name="home">Home</string>
+    <string name="selectDate">Select Date:</string>
+    <string name="selectTime">Select Time:</string>
+    <string name="submit">   Submit   </string>
+    <string name="maxDistance">Distance : </string>
+    <string name="miles">miles</string>
+    <string name="title_location_permission">Grant this app permission to get your location</string>
+    <string name="text_location_permission">For better user experience grant this permission to the app</string>
+    <string name="ok">OK</string>
 
 </resources>

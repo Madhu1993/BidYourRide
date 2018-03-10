@@ -4,6 +4,11 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/home"
+            android:icon="@drawable/ic_home_black_48dp"
+            android:title="@string/home" />
+
+        <item
             android:id="@+id/referToAFriend"
             android:icon="@drawable/ic_share_black_24dp"
             android:title="@string/refer_to_a_friend" />

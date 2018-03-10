@@ -165,9 +165,17 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
         drawerToggle.onConfigurationChanged(newConfig);
     }
 
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.home:
+                drawerLayout.closeDrawer(GravityCompat.START);
+                Intent mainActivity = new Intent(BaseActivity.this, MainActivity.class);
+                mainActivity.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                mainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(mainActivity);
+                return true;
             case R.id.referToAFriend:
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
