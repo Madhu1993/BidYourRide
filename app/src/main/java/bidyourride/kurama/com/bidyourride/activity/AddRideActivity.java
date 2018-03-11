@@ -81,7 +81,13 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     private Double lat;
     private Double longitude;
     private String location;
-    private int typeOfRequest;
+    private String originCityName;
+    private String destinationCityName;
+    private String typeOfRequest;
+    private String originLat;
+    private String originLong;
+    private String destinationLat;
+    private String destinationLong;
 
     static final int ORIGIN_AUTOCOMPLETE_REQUEST_CODE = 1;
     static final int DESTINATION_AUTOCOMPLETE_REQUEST_CODE = 2;
@@ -107,6 +113,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+
 
         originLocation = findViewById(R.id.origin_location);
         destinationLocation = findViewById(R.id.destination_location);
@@ -232,11 +239,11 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         int idObtained = (int) id;
         switch (idObtained) {
             case 1:
-                typeOfRequest = 1;
+                typeOfRequest = "1";
                 return;
 
             case 2:
-                typeOfRequest = 2;
+                typeOfRequest = "2";
         }
 
     }
@@ -290,8 +297,15 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             Place place = PlaceAutocomplete.getPlace(this, data);
             destinationLocation.setText(place.getAddress());
             removeErrorRequired(R.id.destination_location);
-            destLatLong.setLatitude(place.getLatLng().latitude);
-            destLatLong.setLongitude(place.getLatLng().longitude);
+            Double lat = place.getLatLng().latitude;
+            Double longitude = place.getLatLng().longitude;
+
+            destinationCityName = getCityName(lat, longitude);
+            destLatLong.setLatitude(lat);
+            destLatLong.setLongitude(longitude);
+            destinationLat = convertDoubleToString(lat);
+            destinationLong = convertDoubleToString(longitude);
+
             if (!isOriginFieldEmpty()) {
                 findTheDistance();
             }
@@ -327,9 +341,16 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         if (resultCode == RESULT_OK) {
             Place place = PlaceAutocomplete.getPlace(this, data);
             originLocation.setText(place.getAddress());
-            Log.d("AddRideActivity", "pl: ");
-            originLatLong.setLatitude(place.getLatLng().latitude);
-            originLatLong.setLongitude(place.getLatLng().longitude);
+            Double lat = place.getLatLng().latitude;
+            Double longitude = place.getLatLng().longitude;
+
+            originCityName = getCityName(lat, longitude);
+            originLatLong.setLatitude(lat);
+            originLatLong.setLongitude(longitude);
+            originLat = convertDoubleToString(lat);
+            originLong = convertDoubleToString(longitude);
+
+
             if (!isDestFieldEmpty()) {
                 findTheDistance();
             }
@@ -447,7 +468,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 if (checkLocationPermission()) {
                     addRideToFirebase();
                 } else {
-                    Toast.makeText(this, "Grant Location Permission to app", Toast.LENGTH_SHORT).show();
                 }
         }
 
@@ -455,19 +475,19 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     public void addRideToFirebase() {
         if (!isDestFieldEmpty() & !isOriginFieldEmpty() & !isDatePickerEmpty() & !isTimePickerEmpty()) {
-            final String origin = originLocation.getText().toString();
-            final String destination = destinationLocation.getText().toString();
             final String time = timePicker.getText().toString();
             final String date = datePicker.getText().toString();
             final String distance = maxDistancetv.getText().toString();
+            final String originFullAddress = originLocation.getText().toString();
+            final String destinationFullAddress = destinationLocation.getText().toString();
 
-            if(typeOfRequest == 0){
-                typeOfRequest = 1;
+
+            if (TextUtils.isEmpty(typeOfRequest)) {
+                typeOfRequest = "1";
             }
 
             // Disable button so there are no multi-posts
 //            setEditingEnabled(false);
-            Toast.makeText(this, "Posting...", Toast.LENGTH_SHORT).show();
 
 
             //Location call starts
@@ -480,7 +500,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 @Override
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
                     try {
-                        Toast.makeText(AddRideActivity.this, "Response", Toast.LENGTH_SHORT).show();
 
                         Log.d(TAG, "onResponse: + inside1" + response.body());
                         LocationResponse lr = response.body();
@@ -519,11 +538,9 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                                                         String title = concatenateOriginAndDest();
                                                         try {
                                                             String capTitle = capitalize(title);
-                                                            writeNewRide(userId, user.username, capTitle, origin, destination, typeOfRequest, distance, date, time, location);
-                                                            Toast.makeText(AddRideActivity.this, "I am successfully Submitted", Toast.LENGTH_SHORT).show();
+                                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
                                                         } catch (Exception e) {
-                                                            Toast.makeText(AddRideActivity.this, "I am toasted", Toast.LENGTH_SHORT).show();
-                                                            writeNewRide(userId, user.username, title, origin, destination, typeOfRequest, distance, date, time, location);
+                                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
                                                         }
 
                                                     }
@@ -583,10 +600,10 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         }
     }
 
-    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, int typeOfRequest, String distance, String date, String time, String location) {
+    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong) {
         String key = mDatabase.child("rides").push().getKey();
 
-        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location);
+        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLat, destinationLat, destinationLong);
         Map<String, Object> rideValues = rideRequest.toMapWithoutimageEncoded();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/rides/" + key, rideValues);
@@ -596,8 +613,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     }
 
     private String concatenateOriginAndDest() {
-        String str1 = originLocation.getText().toString() + " to";
-        String str2 = destinationLocation.getText().toString();
+        String str1 = originCityName + " to ";
+        String str2 = destinationCityName;
         String result = str1.concat(str2);
 
         return result;
@@ -632,6 +649,24 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     private String capitalize(String line) {
         return Character.toUpperCase(line.charAt(0)) + line.substring(1);
+    }
+
+    private String getCityName(Double lt, Double lg) {
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            List<Address> addresses = geocoder.getFromLocation(lt, lg, 1);
+            String cityName;
+            cityName = addresses.get(0).getLocality();
+            return cityName;
+        } catch (Exception e) {
+
+        }
+        return " ";
+    }
+
+    private String convertDoubleToString(Double d) {
+        String value = String.valueOf(d);
+        return value;
     }
 
 }

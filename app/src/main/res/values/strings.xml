@@ -33,5 +33,8 @@
     <string name="title_location_permission">Grant this app permission to get your location</string>
     <string name="text_location_permission">For better user experience grant this permission to the app</string>
     <string name="ok">OK</string>
+    <string name="hint">find where this is</string>
+    <string name="today">Today</string>
+    <string name="upcoming">Upcoming</string>
 
 </resources>

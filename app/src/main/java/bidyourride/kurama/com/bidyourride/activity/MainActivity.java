@@ -68,7 +68,7 @@ public class MainActivity extends BaseActivity {
         adapter.addFrag(new RequestedRidesFragment(), "Requests");
 
         //fake center fragment, so that it creates place for raised center tab.
-        adapter.addFrag(new RequestedRidesFragment(), "Sample ");
+        adapter.addFrag(new AvailableRidesFragment(), "Sample ");
 
         adapter.addFrag(new AvailableRidesFragment(), "Rides");
         viewPager.setAdapter(adapter);

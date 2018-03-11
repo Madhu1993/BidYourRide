@@ -17,4 +17,7 @@
     <color name="tabDark">#a7a7aa</color>
     <color name="tabTransparent">#10ffffff</color>
 
+    <color name="colorActivityBackground">#F1F1F2</color>
+    <color name="colorTabLayoutBackground">#FB6542</color>
+
 </resources>
