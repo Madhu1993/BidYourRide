@@ -10,9 +10,11 @@ import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 
-public interface ApiInterface {
+public interface RetrofitApiInterface {
 
     @POST("geolocate")
     Call<LocationResponse> getLocation(@Query("key") String key);
+
+
 
 }

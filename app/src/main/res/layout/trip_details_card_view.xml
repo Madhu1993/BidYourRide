@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="550dp"
+    android:layout_height="500dp"
     app:cardCornerRadius="2dp"
     android:clickable="true"
     android:focusable="true"
     app:cardElevation="2dp"
-    android:layout_marginTop="10dp"
+    android:layout_marginTop="15dp"
     app:cardPreventCornerOverlap="false">
 
     <RelativeLayout
@@ -66,7 +66,7 @@
         <FrameLayout
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="wrap_content"
             android:layout_below="@+id/incident_text" />
 
         <LinearLayout

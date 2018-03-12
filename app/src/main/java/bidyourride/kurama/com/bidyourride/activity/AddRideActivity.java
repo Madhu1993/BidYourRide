@@ -52,8 +52,8 @@ import bidyourride.kurama.com.bidyourride.model.Category;
 import bidyourride.kurama.com.bidyourride.model.LocationResponse;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.model.User;
-import bidyourride.kurama.com.bidyourride.rest.ApiInterface;
-import bidyourride.kurama.com.bidyourride.rest.LocationClient;
+import bidyourride.kurama.com.bidyourride.rest.RetrofitApiInterface;
+import bidyourride.kurama.com.bidyourride.rest.RetrofitLocationClient;
 import bidyourride.kurama.com.bidyourride.view.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -491,8 +491,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
 
             //Location call starts
-            ApiInterface locationClient =
-                    LocationClient.getClient().create(ApiInterface.class);
+            RetrofitApiInterface locationClient =
+                    RetrofitLocationClient.getClient().create(RetrofitApiInterface.class);
 
             Call<LocationResponse> call = locationClient.getLocation(Config.GOOGLE_API_KEY);
             Log.d(TAG, "submitRide: ");
@@ -603,7 +603,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong) {
         String key = mDatabase.child("rides").push().getKey();
 
-        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLat, destinationLat, destinationLong);
+        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
         Map<String, Object> rideValues = rideRequest.toMapWithoutimageEncoded();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/rides/" + key, rideValues);

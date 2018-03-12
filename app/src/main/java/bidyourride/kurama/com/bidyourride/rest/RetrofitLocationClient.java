@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by kurapma on 1/23/17.
  */
 
-public class LocationClient {
+public class RetrofitLocationClient {
     public static final String BASE_URL = "https://www.googleapis.com/geolocation/v1/";
     private static Retrofit retrofit = null;
 
