@@ -2,7 +2,6 @@ package bidyourride.kurama.com.bidyourride.model;
 
 import com.google.firebase.database.Exclude;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,8 +26,9 @@ public class RideRequest {
     public String originCityName;
     public String destinationCityName;
     public int starCount = 0;
+    public String mDirections ;
 
-    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String distancebetweenOriginAndLocation, String dateOfRide, String timeOfRide, String locationPostedFrom,  String originCityName, String destinationCityName,String originLat, String originLong, String destinationLat, String destinationLong) {
+    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String distancebetweenOriginAndLocation, String dateOfRide, String timeOfRide, String locationPostedFrom,  String originCityName, String destinationCityName,String originLat, String originLong, String destinationLat, String destinationLong, String mDirections) {
         this.uid = uid;
         this.author = author;
         this.title = title;
@@ -45,6 +45,7 @@ public class RideRequest {
         this.destinationLong= destinationLong;
         this.originCityName = originCityName;
         this.destinationCityName = destinationCityName;
+        this.mDirections = mDirections;
     }
 
     public Map<String, Boolean> stars = new HashMap<>();
@@ -54,9 +55,16 @@ public class RideRequest {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
     }
 
+    public String getmDirections() {
+        return mDirections;
+    }
+
+    public void setmDirections(String mDirections) {
+        this.mDirections = mDirections;
+    }
 
     @Exclude
-    public Map<String, Object> toMapWithoutimageEncoded() {
+    public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
         result.put("uid", uid);
         result.put("author", author);
@@ -75,6 +83,7 @@ public class RideRequest {
         result.put("destinationLong", destinationLong);
         result.put("destinationCityName", destinationCityName);
         result.put("originCityName", originCityName);
+        result.put("mDirections", mDirections);
         return result;
     }
 

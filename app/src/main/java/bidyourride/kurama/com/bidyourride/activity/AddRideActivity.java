@@ -24,11 +24,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.VolleyError;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -36,10 +40,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,12 +52,17 @@ import java.util.Map;
 
 import bidyourride.kurama.com.bidyourride.Config;
 import bidyourride.kurama.com.bidyourride.R;
+import bidyourride.kurama.com.bidyourride.helper.AddRideActivityHelper;
 import bidyourride.kurama.com.bidyourride.model.Category;
+import bidyourride.kurama.com.bidyourride.model.DirectionObject;
+import bidyourride.kurama.com.bidyourride.model.GsonRequest;
 import bidyourride.kurama.com.bidyourride.model.LocationResponse;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.model.User;
+import bidyourride.kurama.com.bidyourride.rest.Helper;
 import bidyourride.kurama.com.bidyourride.rest.RetrofitApiInterface;
 import bidyourride.kurama.com.bidyourride.rest.RetrofitLocationClient;
+import bidyourride.kurama.com.bidyourride.rest.VolleySingleton;
 import bidyourride.kurama.com.bidyourride.view.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -88,6 +97,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     private String originLong;
     private String destinationLat;
     private String destinationLong;
+    private List<LatLng> mDirections;
+    Gson gson;
 
     static final int ORIGIN_AUTOCOMPLETE_REQUEST_CODE = 1;
     static final int DESTINATION_AUTOCOMPLETE_REQUEST_CODE = 2;
@@ -104,6 +115,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         originImage.getLayoutParams().height = 100;
         originImage.getLayoutParams().width = 100;
         originImage.requestLayout();
+        gson = new Gson();
 
         destinationImage = findViewById(R.id.destination_image);
         destinationImage.getLayoutParams().height = 100;
@@ -210,13 +222,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                         Log.d(TAG, "onRequestPermissionsResult: " + " ");
                     }
 
-                } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-
                 }
-                return;
             }
 
         }
@@ -303,8 +309,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             destinationCityName = getCityName(lat, longitude);
             destLatLong.setLatitude(lat);
             destLatLong.setLongitude(longitude);
-            destinationLat = convertDoubleToString(lat);
-            destinationLong = convertDoubleToString(longitude);
+            destinationLat = AddRideActivityHelper.convertDoubleToString(lat);
+            destinationLong = AddRideActivityHelper.convertDoubleToString(longitude);
 
             if (!isOriginFieldEmpty()) {
                 findTheDistance();
@@ -318,14 +324,10 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         }
     }
 
-    private Double getMiles(Float s) {
-        return s * 0.000621371192;
-    }
-
     private void findTheDistance() {
         try {
             distanceBwOriginAndDest = originLatLong.distanceTo(destLatLong);
-            Double miles = getMiles(distanceBwOriginAndDest);
+            Double miles = AddRideActivityHelper.getMiles(distanceBwOriginAndDest);
             int a = (int) Math.round(miles);
             String str1 = Integer.toString(a);
             String str2 = " miles";
@@ -347,8 +349,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             originCityName = getCityName(lat, longitude);
             originLatLong.setLatitude(lat);
             originLatLong.setLongitude(longitude);
-            originLat = convertDoubleToString(lat);
-            originLong = convertDoubleToString(longitude);
+            originLat = AddRideActivityHelper.convertDoubleToString(lat);
+            originLong = AddRideActivityHelper.convertDoubleToString(longitude);
 
 
             if (!isDestFieldEmpty()) {
@@ -466,29 +468,23 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 return;
             case R.id.submit:
                 if (checkLocationPermission()) {
-                    addRideToFirebase();
+                    getPolylines();
                 } else {
                 }
         }
 
     }
 
-    public void addRideToFirebase() {
+    public void addRideToFirebase(final String mDirections) {
         if (!isDestFieldEmpty() & !isOriginFieldEmpty() & !isDatePickerEmpty() & !isTimePickerEmpty()) {
             final String time = timePicker.getText().toString();
             final String date = datePicker.getText().toString();
             final String distance = maxDistancetv.getText().toString();
             final String originFullAddress = originLocation.getText().toString();
             final String destinationFullAddress = destinationLocation.getText().toString();
-
-
             if (TextUtils.isEmpty(typeOfRequest)) {
                 typeOfRequest = "1";
             }
-
-            // Disable button so there are no multi-posts
-//            setEditingEnabled(false);
-
 
             //Location call starts
             RetrofitApiInterface locationClient =
@@ -499,80 +495,48 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             call.enqueue(new Callback<LocationResponse>() {
                 @Override
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
-                    try {
+                    LocationResponse lr = response.body();
+                    location = getCityName(lr.getLocation().getLat(), lr.getLocation().getLng());
+                    // [START single_value_read]
+                    final String userId = getUid();
+                    mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
+                            new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    // Get user value
+                                    User user = dataSnapshot.getValue(User.class);
 
-                        Log.d(TAG, "onResponse: + inside1" + response.body());
-                        LocationResponse lr = response.body();
-                        lat = lr.getLocation().getLat();
-                        longitude = lr.getLocation().getLng();
-
-                        Geocoder geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
-                        Log.d(TAG, "onResponse: inside2");
-                        try {
-                            if (lat != null & longitude != null) {
-                                List<Address> addresses = geoCoder.getFromLocation(lat, longitude, 1);
-                                Log.d(TAG, "onResponse: + inside try 3");
-
-                                if (addresses.size() > 0) {
-                                    location = addresses.get(0).getLocality();
-
-                                    // [START single_value_read]
-                                    final String userId = getUid();
-                                    mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
-                                            new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                                    // Get user value
-                                                    User user = dataSnapshot.getValue(User.class);
-
-                                                    // [START_EXCLUDE]
-                                                    if (user == null) {
-                                                        // User is null, error out
-                                                        Log.e(TAG, "User " + userId + " is unexpectedly null");
-                                                        Toast.makeText(AddRideActivity.this,
-                                                                "Error: could not fetch user.",
-                                                                Toast.LENGTH_SHORT).show();
-                                                    } else {
-                                                        // Write new post
-                                                        // Body is required
-                                                        String title = concatenateOriginAndDest();
-                                                        try {
-                                                            String capTitle = capitalize(title);
-                                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
-                                                        } catch (Exception e) {
-                                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
-                                                        }
-
-                                                    }
-
-                                                    // Finish this Activity, back to the stream
-                                                    setEditingEnabled(true);
-                                                    finish();
-                                                    // [END_EXCLUDE]
-                                                }
-
-                                                @Override
-                                                public void onCancelled(DatabaseError databaseError) {
-                                                    Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                                                    // [START_EXCLUDE]
-                                                    setEditingEnabled(true);
-                                                    // [END_EXCLUDE]
-                                                }
-                                            });
-                                    // [END single_value_read]
-                                } else {
-
+                                    if (user == null) {
+                                        // User is null, error out
+                                        Log.e(TAG, "User " + userId + " is unexpectedly null");
+                                        Toast.makeText(AddRideActivity.this,
+                                                "Error: could not fetch user.",
+                                                Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        String title = concatenateOriginAndDest();
+                                        try {
+                                            String capTitle = AddRideActivityHelper.capitalize(title);
+                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, mDirections);
+                                        } catch (Exception e) {
+                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, mDirections);
+                                        }
+                                    }
+                                    // Finish this Activity, back to the stream
+                                    setEditingEnabled(true);
+                                    finish();
+                                    // [END_EXCLUDE]
                                 }
-                            } else {
-                                System.out.println("Reverse geocoding failed on lat, long null values");
-                            }
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
-                    } catch (Exception e) {
-                        Log.d(TAG, "onResponse: " + e.toString());
 
-                    }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+                                    Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                                    // [START_EXCLUDE]
+                                    setEditingEnabled(true);
+                                    // [END_EXCLUDE]
+                                }
+                            });
+                    // [END single_value_read]
+
                 }
 
                 @Override
@@ -581,30 +545,39 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 }
             });
         } else {
-            if (isOriginFieldEmpty()) {
-                originLocation.setError(REQUIRED);
-            }
-
-            if (isDestFieldEmpty()) {
-                destinationLocation.setError(REQUIRED);
-            }
-
-            if (isTimePickerEmpty()) {
-                timePicker.setError(REQUIRED);
-            }
-
-            if (isDatePickerEmpty()) {
-                datePicker.setError(REQUIRED);
-            }
-
+            setRequiredErrorForEmptyFields();
         }
     }
 
-    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong) {
+    private void setRequiredErrorForEmptyFields() {
+        if (isOriginFieldEmpty()) {
+            originLocation.setError(REQUIRED);
+        }
+
+        if (isDestFieldEmpty()) {
+            destinationLocation.setError(REQUIRED);
+        }
+
+        if (isTimePickerEmpty()) {
+            timePicker.setError(REQUIRED);
+        }
+
+        if (isDatePickerEmpty()) {
+            datePicker.setError(REQUIRED);
+        }
+    }
+
+    private void getPolylines() {
+        String directionApiPath = Helper.getUrl(String.valueOf(originLat), String.valueOf(originLong),
+                String.valueOf(destinationLat), String.valueOf(destinationLong));
+        getDirectionFromDirectionApiServer(directionApiPath);
+    }
+
+    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String directions) {
         String key = mDatabase.child("rides").push().getKey();
 
-        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong);
-        Map<String, Object> rideValues = rideRequest.toMapWithoutimageEncoded();
+        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directions);
+        Map<String, Object> rideValues = rideRequest.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/rides/" + key, rideValues);
         childUpdates.put("/user-rides/" + userId + "/" + key, rideValues);
@@ -612,12 +585,67 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     }
 
+    public void getDirectionFromDirectionApiServer(String url) {
+        GsonRequest<DirectionObject> serverRequest = new GsonRequest<DirectionObject>(
+                Request.Method.GET,
+                url,
+                DirectionObject.class,
+                createRequestSuccessListener(),
+                createRequestErrorListener());
+        serverRequest.setRetryPolicy(new DefaultRetryPolicy(
+                Helper.MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(serverRequest);
+    }
+
+    public void getLatLongFrom(String url) {
+        GsonRequest<DirectionObject> serverRequest = new GsonRequest<DirectionObject>(
+                Request.Method.GET,
+                url,
+                DirectionObject.class,
+                createRequestSuccessListener(),
+                createRequestErrorListener());
+        serverRequest.setRetryPolicy(new DefaultRetryPolicy(
+                Helper.MY_SOCKET_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(serverRequest);
+    }
+
+    public com.android.volley.Response.Listener<DirectionObject> createRequestSuccessListener() {
+        return new com.android.volley.Response.Listener<DirectionObject>() {
+            @Override
+            public void onResponse(DirectionObject response) {
+                try {
+                    Log.d("JSON Response", response.toString());
+                    if (response.getStatus().equals("OK")) {
+                        String direction = gson.toJson(response);
+                        addRideToFirebase(direction);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+    }
+
+    public static com.android.volley.Response.ErrorListener createRequestErrorListener() {
+        return new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        };
+    }
+
     private String concatenateOriginAndDest() {
         String str1 = originCityName + " to ";
         String str2 = destinationCityName;
-        String result = str1.concat(str2);
 
-        return result;
+        return str1.concat(str2);
     }
 
     private void setEditingEnabled(boolean enabled) {
@@ -647,10 +675,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         dpd.show(getFragmentManager(), "Choose Date:");
     }
 
-    private String capitalize(String line) {
-        return Character.toUpperCase(line.charAt(0)) + line.substring(1);
-    }
-
     private String getCityName(Double lt, Double lg) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
         try {
@@ -662,11 +686,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
         }
         return " ";
-    }
-
-    private String convertDoubleToString(Double d) {
-        String value = String.valueOf(d);
-        return value;
     }
 
 }

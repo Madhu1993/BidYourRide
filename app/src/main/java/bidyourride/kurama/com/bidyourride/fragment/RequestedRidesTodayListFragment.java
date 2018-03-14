@@ -1,6 +1,5 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -12,23 +11,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -38,22 +23,9 @@ import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import bidyourride.kurama.com.bidyourride.R;
-import bidyourride.kurama.com.bidyourride.model.DirectionObject;
-import bidyourride.kurama.com.bidyourride.model.GsonRequest;
-import bidyourride.kurama.com.bidyourride.model.LegsObject;
-import bidyourride.kurama.com.bidyourride.model.PolylineObject;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
-import bidyourride.kurama.com.bidyourride.model.RouteObject;
-import bidyourride.kurama.com.bidyourride.model.StepsObject;
-import bidyourride.kurama.com.bidyourride.rest.Helper;
-import bidyourride.kurama.com.bidyourride.rest.VolleySingleton;
 import bidyourride.kurama.com.bidyourride.viewholder.PostViewHolder;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 /**
  * Created by madhukurapati on 11/20/17.
@@ -91,7 +63,6 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
         return rootView;
     }
 
-
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -107,8 +78,6 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
 
         mAdapter = new FirebaseRecyclerAdapter<RideRequest, PostViewHolder>(RideRequest.class, R.layout.trip_details_card_view,
                 PostViewHolder.class, ridesQuery) {
-            SupportMapFragment mapFragment;
-            PolylineOptions polylineOptions = new PolylineOptions();
 
             @Override
             public DatabaseReference getRef(int position) {
@@ -132,6 +101,9 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
 
             @Override
             protected void populateViewHolder(final PostViewHolder viewHolder, final RideRequest model, final int position) {
+                if (viewHolder == null) {
+                    return;
+                }
                 final DatabaseReference rideRef = getRef(position);
                 // Set click listener for the whole post view
                 final String rideKey = rideRef.getKey();
@@ -149,7 +121,7 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
                 }
 
                 // Bind Ride to ViewHolder, setting OnClickListener for the star button
-                viewHolder.bindToPost(getContext(), model, new View.OnClickListener() {
+                viewHolder.bindToPost(getContext(), rideRef.getKey(), model, new View.OnClickListener() {
                     @Override
                     public void onClick(View starView) {
                         DatabaseReference globalPostRef = mDatabase.child("rides").child(rideRef.getKey());
@@ -159,6 +131,7 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
                     }
                 });
 
+                viewHolder.bindView(position);
             }
 
             @Override
@@ -173,22 +146,9 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
 
             @Override
             public void onBindViewHolder(PostViewHolder viewHolder, int position) {
-                /*
-                App crashes when moved from last fragment to first fragment on enabling this
-                Sideeffect is that 1st view is not populated with map on removing this
-                if (mapFragment == null) {
-                    mapFragment = SupportMapFragment.newInstance();
+                if (viewHolder == null) {
+                    return;
                 }
-                FragmentManager fragmentManager = getChildFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.map, mapFragment).commit();
-                viewHolder.getMapFragmentAndCallback(getContext(), new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                        LatLng latLng = new LatLng(42.0864745, -72.62116889999999);
-                        googleMap.addMarker(new MarkerOptions().position(latLng));
-                        googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-                    }
-                });*/
                 super.onBindViewHolder(viewHolder, position);
             }
 
@@ -197,201 +157,29 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
             public PostViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View inflatedView = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.trip_details_card_view, parent, false);
-                /*if(mapFragment == null) {
-                    mapFragment = SupportMapFragment.newInstance();
-                }
-                mapFragment = SupportMapFragment.newInstance();
-                FragmentManager fragmentManager = getChildFragmentManager();
-                fragmentManager.beginTransaction().replace(R.id.map, mapFragment).commit();
-                mapFragment.getMapAsync(new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                    }
-                });*/
-
                 return new PostViewHolder(inflatedView);
             }
 
-            @Override
-            public void onViewDetachedFromWindow(PostViewHolder holder) {
-                super.onViewDetachedFromWindow(holder);
-                //holder.removeMapFragment(getContext());
-            }
-
-
-            @Override
-            public void onViewAttachedToWindow(final PostViewHolder holder) {
-                super.onViewAttachedToWindow(holder);
-                holder.getMapFragmentAndCallback(getContext(), new OnMapReadyCallback() {
-                    @Override
-                    public void onMapReady(GoogleMap googleMap) {
-                        holder.getAdapterPosition();
-                        Double originLat = Double.parseDouble(getItem(holder.getAdapterPosition()).getOriginLat());
-                        Double originLong = Double.parseDouble(getItem(holder.getAdapterPosition()).getOriginLong());
-                        Double destinationLat = Double.parseDouble(getItem(holder.getAdapterPosition()).getDestinationLat());
-                        Double destinationLong = Double.parseDouble(getItem(holder.getAdapterPosition()).getDestinationLong());
-
-                        addMarkersOfOriginDestination(googleMap, originLat, originLong, destinationLat, destinationLong);
-
-                        String directionApiPath = Helper.getUrl(String.valueOf(originLat), String.valueOf(originLong),
-                                String.valueOf(destinationLat), String.valueOf(destinationLong));
-                        getDirectionFromDirectionApiServer(directionApiPath, googleMap);
-                    }
-
-                });
-            }
         };
         mRecycler.setAdapter(mAdapter);
-
+        mRecycler.setRecyclerListener(mRecycleListener);
     }
 
-    private void addMarkersOfOriginDestination(GoogleMap map, Double originLat, Double originLong, Double destinationLat, Double destinationLong) {
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(originLat, originLong))
-                .title("Origin"));
+    public RecyclerView.RecyclerListener mRecycleListener = new RecyclerView.RecyclerListener() {
 
-        map.addMarker(new MarkerOptions()
-                .position(new LatLng(destinationLat, destinationLong))
-                .title("Destination"));
-    }
-
-    private void getDirectionFromDirectionApiServer(String url, GoogleMap googleMap) {
-        GsonRequest<DirectionObject> serverRequest = new GsonRequest<DirectionObject>(
-                Request.Method.GET,
-                url,
-                DirectionObject.class,
-                createRequestSuccessListener(googleMap),
-                createRequestErrorListener());
-        serverRequest.setRetryPolicy(new DefaultRetryPolicy(
-                Helper.MY_SOCKET_TIMEOUT_MS,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(serverRequest);
-    }
-
-    private Response.Listener<DirectionObject> createRequestSuccessListener(final GoogleMap googleMap) {
-        return new Response.Listener<DirectionObject>() {
-            @Override
-            public void onResponse(DirectionObject response) {
-                try {
-                    Log.d("JSON Response", response.toString());
-                    if (response.getStatus().equals("OK")) {
-                        List<LatLng> mDirections = getDirectionPolylines(response.getRoutes());
-                        drawRouteOnMap(googleMap, mDirections);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            ;
-        };
-    }
-
-    private Response.ErrorListener createRequestErrorListener() {
-        return new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-            }
-        };
-    }
-
-    private void drawRouteOnMap(GoogleMap map, List<LatLng> positions) {
-        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
-        options.addAll(positions);
-        Polyline polyline = map.addPolyline(options);
-        if(!getCameraPositionAndDrawMap(polyline, map)) {
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(positions.get(1).latitude, positions.get(1).longitude))
-                .zoom(8)
-                .build();
-        if (!map.getUiSettings().isZoomControlsEnabled()) {
-            map.getUiSettings().setZoomControlsEnabled(true);
-        }
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
-    }
-
-    private Boolean getCameraPositionAndDrawMap(final Polyline polyline, GoogleMap map) {
-        boolean isCameraPositionSet = false;
-        boolean hasPoints = false;
-        Double maxLat = null, minLat = null, minLon = null, maxLon = null;
-        if (polyline != null && polyline.getPoints() != null) {
-            List<LatLng> pts = polyline.getPoints();
-            for (LatLng coordinate : pts) {
-                // Find out the maximum and minimum latitudes & longitudes
-                // Latitude
-                maxLat = maxLat != null ? Math.max(coordinate.latitude, maxLat) : coordinate.latitude;
-                minLat = minLat != null ? Math.min(coordinate.latitude, minLat) : coordinate.latitude;
-
-                // Longitude
-                maxLon = maxLon != null ? Math.max(coordinate.longitude, maxLon) : coordinate.longitude;
-                minLon = minLon != null ? Math.min(coordinate.longitude, minLon) : coordinate.longitude;
-                hasPoints = true;
+        @Override
+        public void onViewRecycled(RecyclerView.ViewHolder holder) {
+            PostViewHolder mapHolder = (PostViewHolder) holder;
+            if (mapHolder != null && mapHolder.map != null) {
+                // Clear the map and free up resources by changing the map type to none.
+                // Also reset the map when it gets reattached to layout, so the previous map would
+                // not be displayed.
+                mapHolder.map.clear();
+                mapHolder.map.setMapType(GoogleMap.MAP_TYPE_NONE);
             }
         }
-        if (hasPoints) {
-            LatLngBounds.Builder builder = new LatLngBounds.Builder();
-            builder.include(new LatLng(maxLat, maxLon));
-            builder.include(new LatLng(minLat, minLon));
-            map.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 48));
-            isCameraPositionSet = true;
-        }
-        return isCameraPositionSet;
+    };
 
-    }
-
-    private List<LatLng> getDirectionPolylines(List<RouteObject> routes) {
-        List<LatLng> directionList = new ArrayList<LatLng>();
-        for (RouteObject route : routes) {
-            List<LegsObject> legs = route.getLegs();
-            for (LegsObject leg : legs) {
-                List<StepsObject> steps = leg.getSteps();
-                for (StepsObject step : steps) {
-                    PolylineObject polyline = step.getPolyline();
-                    String points = polyline.getPoints();
-                    List<LatLng> singlePolyline = decodePoly(points);
-                    directionList.addAll(singlePolyline);
-                }
-            }
-        }
-        return directionList;
-    }
-
-    private List<LatLng> decodePoly(String encoded) {
-        List<LatLng> poly = new ArrayList<>();
-        int index = 0, len = encoded.length();
-        int lat = 0, lng = 0;
-        while (index < len) {
-            int b, shift = 0, result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-            LatLng p = new LatLng((((double) lat / 1E5)),
-                    (((double) lng / 1E5)));
-            poly.add(p);
-        }
-        return poly;
-    }
-
-
-    // [START post_stars_transaction]
     private void onStarClicked(DatabaseReference postRef) {
         postRef.runTransaction(new Transaction.Handler() {
             @Override

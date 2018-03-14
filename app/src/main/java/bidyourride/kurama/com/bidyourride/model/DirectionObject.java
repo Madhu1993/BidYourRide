@@ -8,6 +8,9 @@ import java.util.List;
 public class DirectionObject {
     private List<RouteObject> routes;
     private String status;
+    public DirectionObject(){
+
+    }
     public DirectionObject(List<RouteObject> routes, String status) {
         this.routes = routes;
         this.status = status;
