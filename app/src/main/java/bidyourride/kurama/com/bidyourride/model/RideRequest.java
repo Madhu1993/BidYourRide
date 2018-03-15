@@ -26,9 +26,10 @@ public class RideRequest {
     public String originCityName;
     public String destinationCityName;
     public int starCount = 0;
-    public String mDirections ;
+    public String directionObjectJson ;
+    public String directionListJson;
 
-    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String distancebetweenOriginAndLocation, String dateOfRide, String timeOfRide, String locationPostedFrom,  String originCityName, String destinationCityName,String originLat, String originLong, String destinationLat, String destinationLong, String mDirections) {
+    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String distancebetweenOriginAndLocation, String dateOfRide, String timeOfRide, String locationPostedFrom,  String originCityName, String destinationCityName,String originLat, String originLong, String destinationLat, String destinationLong, String mDirections, String directionListJson) {
         this.uid = uid;
         this.author = author;
         this.title = title;
@@ -45,7 +46,24 @@ public class RideRequest {
         this.destinationLong= destinationLong;
         this.originCityName = originCityName;
         this.destinationCityName = destinationCityName;
-        this.mDirections = mDirections;
+        this.directionObjectJson = mDirections;
+        this.directionListJson = directionListJson;
+    }
+
+    public String getDirectionObjectJson() {
+        return directionObjectJson;
+    }
+
+    public void setDirectionObjectJson(String directionObjectJson) {
+        this.directionObjectJson = directionObjectJson;
+    }
+
+    public String getDirectionListJson() {
+        return directionListJson;
+    }
+
+    public void setDirectionListJson(String directionListJson) {
+        this.directionListJson = directionListJson;
     }
 
     public Map<String, Boolean> stars = new HashMap<>();
@@ -56,11 +74,11 @@ public class RideRequest {
     }
 
     public String getmDirections() {
-        return mDirections;
+        return directionObjectJson;
     }
 
     public void setmDirections(String mDirections) {
-        this.mDirections = mDirections;
+        this.directionObjectJson = mDirections;
     }
 
     @Exclude
@@ -83,7 +101,8 @@ public class RideRequest {
         result.put("destinationLong", destinationLong);
         result.put("destinationCityName", destinationCityName);
         result.put("originCityName", originCityName);
-        result.put("mDirections", mDirections);
+        result.put("directionObjectJson", directionObjectJson);
+        result.put("directionListJson", directionListJson);
         return result;
     }
 

@@ -9,6 +9,7 @@ import android.icu.util.Calendar;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -56,8 +57,12 @@ import bidyourride.kurama.com.bidyourride.helper.AddRideActivityHelper;
 import bidyourride.kurama.com.bidyourride.model.Category;
 import bidyourride.kurama.com.bidyourride.model.DirectionObject;
 import bidyourride.kurama.com.bidyourride.model.GsonRequest;
+import bidyourride.kurama.com.bidyourride.model.LegsObject;
 import bidyourride.kurama.com.bidyourride.model.LocationResponse;
+import bidyourride.kurama.com.bidyourride.model.PolylineObject;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
+import bidyourride.kurama.com.bidyourride.model.RouteObject;
+import bidyourride.kurama.com.bidyourride.model.StepsObject;
 import bidyourride.kurama.com.bidyourride.model.User;
 import bidyourride.kurama.com.bidyourride.rest.Helper;
 import bidyourride.kurama.com.bidyourride.rest.RetrofitApiInterface;
@@ -97,7 +102,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     private String originLong;
     private String destinationLat;
     private String destinationLong;
-    private List<LatLng> mDirections;
     Gson gson;
 
     static final int ORIGIN_AUTOCOMPLETE_REQUEST_CODE = 1;
@@ -475,7 +479,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     }
 
-    public void addRideToFirebase(final String mDirections) {
+    public void addRideToFirebase(final String directionObjectJson, final String directionListJson) {
         if (!isDestFieldEmpty() & !isOriginFieldEmpty() & !isDatePickerEmpty() & !isTimePickerEmpty()) {
             final String time = timePicker.getText().toString();
             final String date = datePicker.getText().toString();
@@ -486,7 +490,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 typeOfRequest = "1";
             }
 
-            //Location call starts
             RetrofitApiInterface locationClient =
                     RetrofitLocationClient.getClient().create(RetrofitApiInterface.class);
 
@@ -497,32 +500,27 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
                     LocationResponse lr = response.body();
                     location = getCityName(lr.getLocation().getLat(), lr.getLocation().getLng());
-                    // [START single_value_read]
                     final String userId = getUid();
                     mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
                             new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
-                                    // Get user value
                                     User user = dataSnapshot.getValue(User.class);
-
                                     if (user == null) {
-                                        // User is null, error out
                                         Log.e(TAG, "User " + userId + " is unexpectedly null");
                                         Toast.makeText(AddRideActivity.this,
                                                 "Error: could not fetch user.",
                                                 Toast.LENGTH_SHORT).show();
                                     } else {
-                                        String title = concatenateOriginAndDest();
+                                        String title = concatenateOriginAndDest(originCityName, destinationCityName);
                                         try {
                                             String capTitle = AddRideActivityHelper.capitalize(title);
-                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, mDirections);
+                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
                                         } catch (Exception e) {
-                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, mDirections);
+                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
                                         }
                                     }
-                                    // Finish this Activity, back to the stream
-                                    setEditingEnabled(true);
+                                    //setEditingEnabled(true);
                                     finish();
                                     // [END_EXCLUDE]
                                 }
@@ -530,9 +528,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                                 @Override
                                 public void onCancelled(DatabaseError databaseError) {
                                     Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                                    // [START_EXCLUDE]
-                                    setEditingEnabled(true);
-                                    // [END_EXCLUDE]
+                                    //setEditingEnabled(true);
                                 }
                             });
                     // [END single_value_read]
@@ -573,10 +569,10 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         getDirectionFromDirectionApiServer(directionApiPath);
     }
 
-    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String directions) {
+    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String directionObjectJson, String directionListJson) {
         String key = mDatabase.child("rides").push().getKey();
 
-        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directions);
+        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
         Map<String, Object> rideValues = rideRequest.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
         childUpdates.put("/rides/" + key, rideValues);
@@ -599,20 +595,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(serverRequest);
     }
 
-    public void getLatLongFrom(String url) {
-        GsonRequest<DirectionObject> serverRequest = new GsonRequest<DirectionObject>(
-                Request.Method.GET,
-                url,
-                DirectionObject.class,
-                createRequestSuccessListener(),
-                createRequestErrorListener());
-        serverRequest.setRetryPolicy(new DefaultRetryPolicy(
-                Helper.MY_SOCKET_TIMEOUT_MS,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(serverRequest);
-    }
-
     public com.android.volley.Response.Listener<DirectionObject> createRequestSuccessListener() {
         return new com.android.volley.Response.Listener<DirectionObject>() {
             @Override
@@ -621,7 +603,9 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                     Log.d("JSON Response", response.toString());
                     if (response.getStatus().equals("OK")) {
                         String direction = gson.toJson(response);
-                        addRideToFirebase(direction);
+                        GetDirectionsFromPositions getDirectionsFromPositions = new GetDirectionsFromPositions(direction, response.getRoutes());
+                        getDirectionsFromPositions.execute();
+                        //addRideToFirebase(direction);
                     } else {
                         Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
                     }
@@ -641,7 +625,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         };
     }
 
-    private String concatenateOriginAndDest() {
+    private String concatenateOriginAndDest(String originCityName, String destinationCityName) {
         String str1 = originCityName + " to ";
         String str2 = destinationCityName;
 
@@ -686,6 +670,107 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
         }
         return " ";
+    }
+
+    public class PostToFirebase extends AsyncTask<Void, Void, Void> {
+        String directionOb;
+        String direectionList;
+
+        public PostToFirebase(String directionOb, String direectionList) {
+            this.directionOb = directionOb;
+            this.direectionList = direectionList;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            addRideToFirebase(directionOb, direectionList);
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            Toast.makeText(AddRideActivity.this, "Uploading To Firebase", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    public class GetDirectionsFromPositions extends AsyncTask<Void, Void, List<LatLng>> {
+        List<LatLng> directionList;
+        List<RouteObject> routeObjectList;
+        String directionObjectJson;
+
+        public GetDirectionsFromPositions(String directionObjectJson, List<RouteObject> routeObjectList) {
+            this.routeObjectList = routeObjectList;
+            this.directionObjectJson = directionObjectJson;
+        }
+
+        private List<LatLng> decodePoly(String encoded) {
+            List<LatLng> poly = new ArrayList<>();
+            int index = 0, len = encoded.length();
+            int lat = 0, lng = 0;
+            while (index < len) {
+                int b, shift = 0, result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+                LatLng p = new LatLng((((double) lat / 1E5)),
+                        (((double) lng / 1E5)));
+                poly.add(p);
+            }
+            return poly;
+        }
+
+        private List<LatLng> getDirectionPolylines(List<RouteObject> routes) {
+            directionList = new ArrayList<LatLng>();
+            for (RouteObject route : routes) {
+                List<LegsObject> legs = route.getLegs();
+                for (LegsObject leg : legs) {
+                    List<StepsObject> steps = leg.getSteps();
+                    for (StepsObject step : steps) {
+                        PolylineObject polyline = step.getPolyline();
+                        String points = polyline.getPoints();
+                        List<LatLng> singlePolyline = decodePoly(points);
+                        directionList.addAll(singlePolyline);
+                    }
+                }
+            }
+            return directionList;
+        }
+
+        @Override
+        protected List<LatLng> doInBackground(Void... voids) {
+            directionList = getDirectionPolylines(routeObjectList);
+            return directionList;
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            Toast.makeText(getApplicationContext(), "LOADING", Toast.LENGTH_SHORT).show();
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(List<LatLng> latLngs) {
+            String directionListJson = gson.toJson(latLngs);
+            Log.d(TAG, "onPostExecute:directList " + directionListJson);
+            Log.d(TAG, "onPostExecute:directionObject " + directionObjectJson);
+            //addRideToFirebase(directionObjectJson, directionListJson);
+            PostToFirebase postToFirebase = new PostToFirebase(directionObjectJson, directionListJson);
+            postToFirebase.execute();
+        }
     }
 
 }

@@ -2,9 +2,7 @@ package bidyourride.kurama.com.bidyourride.helper;
 
 import android.graphics.Color;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.android.volley.Response;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -14,16 +12,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import bidyourride.kurama.com.bidyourride.model.DirectionObject;
-import bidyourride.kurama.com.bidyourride.model.LegsObject;
-import bidyourride.kurama.com.bidyourride.model.PolylineObject;
-import bidyourride.kurama.com.bidyourride.model.RouteObject;
-import bidyourride.kurama.com.bidyourride.model.StepsObject;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 /**
  * Created by madhukurapati on 3/13/18.
@@ -43,33 +32,7 @@ public class GoogleMapHelper {
                 .title("Destination"));
     }
 
-    public static Response.Listener<DirectionObject> createRequestSuccessListener(final GoogleMap googleMap) {
-        return new Response.Listener<DirectionObject>() {
-            @Override
-            public void onResponse(DirectionObject response) {
-                try {
-                    Log.d("JSON Response", response.toString());
-                    if (response.getStatus().equals("OK")) {
-                        List<LatLng> mDirections = getDirectionPolylines(response.getRoutes());
-                        drawRouteOnMap(googleMap, mDirections);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            ;
-        };
-    }
-
-    public static void drawRouteOnMap(GoogleMap map, List<LatLng> positions) {
-        PolylineOptions options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
-        options.addAll(positions);
-
-        Polyline polyline = map.addPolyline(options);
-
+    public static void drawRouteOnMap(Polyline polyline,GoogleMap map, List<LatLng> positions) {
         if (!getCameraPositionAndDrawMap(polyline, map)) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(positions.get(1).latitude, positions.get(1).longitude))
@@ -113,53 +76,6 @@ public class GoogleMapHelper {
             }
         }
         return isCameraPositionSet;
-    }
-
-
-    public static List<LatLng> getDirectionPolylines(List<RouteObject> routes) {
-        List<LatLng> directionList = new ArrayList<LatLng>();
-        for (RouteObject route : routes) {
-            List<LegsObject> legs = route.getLegs();
-            for (LegsObject leg : legs) {
-                List<StepsObject> steps = leg.getSteps();
-                for (StepsObject step : steps) {
-                    PolylineObject polyline = step.getPolyline();
-                    String points = polyline.getPoints();
-                    List<LatLng> singlePolyline = decodePoly(points);
-                    directionList.addAll(singlePolyline);
-                }
-            }
-        }
-        return directionList;
-    }
-
-    public static List<LatLng> decodePoly(String encoded) {
-        List<LatLng> poly = new ArrayList<>();
-        int index = 0, len = encoded.length();
-        int lat = 0, lng = 0;
-        while (index < len) {
-            int b, shift = 0, result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lat += dlat;
-            shift = 0;
-            result = 0;
-            do {
-                b = encoded.charAt(index++) - 63;
-                result |= (b & 0x1f) << shift;
-                shift += 5;
-            } while (b >= 0x20);
-            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-            lng += dlng;
-            LatLng p = new LatLng((((double) lat / 1E5)),
-                    (((double) lng / 1E5)));
-            poly.add(p);
-        }
-        return poly;
     }
 
 }

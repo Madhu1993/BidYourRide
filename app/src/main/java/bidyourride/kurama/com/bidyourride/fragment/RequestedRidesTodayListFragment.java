@@ -71,6 +71,7 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
         mManager = new LinearLayoutManager(getActivity());
         mManager.setReverseLayout(true);
         mManager.setStackFromEnd(true);
+        mManager.setItemPrefetchEnabled(true);
         mRecycler.setLayoutManager(mManager);
 
         // Set up FirebaseRecyclerAdapter with the Query
