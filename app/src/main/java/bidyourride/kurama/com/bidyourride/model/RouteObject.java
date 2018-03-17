@@ -8,10 +8,18 @@ import java.util.List;
 
 public class RouteObject {
     private List<LegsObject> legs;
+
     public RouteObject(List<LegsObject> legs) {
         this.legs = legs;
     }
+
     public List<LegsObject> getLegs() {
         return legs;
+    }
+
+    private Overview_polyline overview_polyline;
+
+    public Overview_polyline getOverview_polyline() {
+        return overview_polyline;
     }
 }

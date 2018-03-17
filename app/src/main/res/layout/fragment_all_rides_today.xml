@@ -12,6 +12,6 @@
         android:layout_alignParentTop="true"
         android:clipToPadding="false"
         android:scrollbars="vertical"
-        tools:listitem="@layout/trip_details_card_view" />
+        tools:listitem="@layout/rides_details_card_view" />
 
 </FrameLayout>

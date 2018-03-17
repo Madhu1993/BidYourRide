@@ -36,5 +36,6 @@
     <string name="hint">find where this is</string>
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
+    <string name="avgTime">Avg duration:</string>
 
 </resources>

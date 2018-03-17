@@ -26,28 +26,26 @@ public class RideRequest {
     public String originCityName;
     public String destinationCityName;
     public int starCount = 0;
-    public String directionObjectJson ;
-    public String directionListJson;
+    public String directionObjectJson;
+    public String encodedMapString;
 
-    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String distancebetweenOriginAndLocation, String dateOfRide, String timeOfRide, String locationPostedFrom,  String originCityName, String destinationCityName,String originLat, String originLong, String destinationLat, String destinationLong, String mDirections, String directionListJson) {
+    public RideRequest(String uid, String author, String title, String origin, String destination, String typeOfRequest, String dateOfRide, String timeOfRide, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String mDirections, String encodedMapString) {
         this.uid = uid;
         this.author = author;
         this.title = title;
         this.origin = origin;
         this.destination = destination;
         this.typeOfRequest = typeOfRequest;
-        this.distancebetweenOriginAndLocation = distancebetweenOriginAndLocation;
         this.dateOfRide = dateOfRide;
         this.timeOfRide = timeOfRide;
-        this.locationPostedFrom = locationPostedFrom;
-        this.originLat= originLat;
-        this.originLong= originLong;
-        this.destinationLat= destinationLat;
-        this.destinationLong= destinationLong;
+        this.originLat = originLat;
+        this.originLong = originLong;
+        this.destinationLat = destinationLat;
+        this.destinationLong = destinationLong;
         this.originCityName = originCityName;
         this.destinationCityName = destinationCityName;
         this.directionObjectJson = mDirections;
-        this.directionListJson = directionListJson;
+        this.encodedMapString = encodedMapString;
     }
 
     public String getDirectionObjectJson() {
@@ -58,16 +56,7 @@ public class RideRequest {
         this.directionObjectJson = directionObjectJson;
     }
 
-    public String getDirectionListJson() {
-        return directionListJson;
-    }
-
-    public void setDirectionListJson(String directionListJson) {
-        this.directionListJson = directionListJson;
-    }
-
     public Map<String, Boolean> stars = new HashMap<>();
-    public String locationPostedFrom;
 
     public RideRequest() {
         // Default constructor required for calls to DataSnapshot.getValue(Post.class)
@@ -90,10 +79,8 @@ public class RideRequest {
         result.put("title", title);
         result.put("destination", destination);
         result.put("typeOfRequest", typeOfRequest);
-        result.put("distancebetweenOriginAndLocation", distancebetweenOriginAndLocation);
         result.put("dateOfRide", dateOfRide);
         result.put("timeOfRide", timeOfRide);
-        result.put("locationPostedFrom", locationPostedFrom);
         result.put("stars", stars);
         result.put("originLat", originLat);
         result.put("originLong", originLong);
@@ -102,7 +89,7 @@ public class RideRequest {
         result.put("destinationCityName", destinationCityName);
         result.put("originCityName", originCityName);
         result.put("directionObjectJson", directionObjectJson);
-        result.put("directionListJson", directionListJson);
+        result.put("encodedMapString", encodedMapString);
         return result;
     }
 
@@ -139,6 +126,14 @@ public class RideRequest {
     public void setAuthor(String author) {
         this.author = author;
 
+    }
+
+    public String getEncodedMapString() {
+        return encodedMapString;
+    }
+
+    public void setEncodedMapString(String encodedMapString) {
+        this.encodedMapString = encodedMapString;
     }
 
     public String getOrigin() {
@@ -191,14 +186,6 @@ public class RideRequest {
 
     public int getStarCount() {
         return starCount;
-    }
-
-    public String getLocationPostedFrom() {
-        return locationPostedFrom;
-    }
-
-    public void setLocationPostedFrom(String locationPostedFrom) {
-        this.locationPostedFrom = locationPostedFrom;
     }
 
     public String getOriginLat() {

@@ -1,7 +1,9 @@
 package bidyourride.kurama.com.bidyourride.helper;
 
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -11,8 +13,17 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import bidyourride.kurama.com.bidyourride.model.LegsObject;
+import bidyourride.kurama.com.bidyourride.model.PolylineObject;
+import bidyourride.kurama.com.bidyourride.model.RouteObject;
+import bidyourride.kurama.com.bidyourride.model.StepsObject;
+
+import static com.facebook.FacebookSdk.getApplicationContext;
 
 /**
  * Created by madhukurapati on 3/13/18.
@@ -77,5 +88,119 @@ public class GoogleMapHelper {
         }
         return isCameraPositionSet;
     }
+
+    public class GetDirectionsFromPositions extends AsyncTask<Void, Void, String> {
+        List<LatLng> directionList;
+        List<RouteObject> routeObjectList;
+
+        public GetDirectionsFromPositions(List<RouteObject> routeObjectList) {
+            this.routeObjectList = routeObjectList;
+        }
+
+        private List<LatLng> decodePoly(String encoded) {
+            List<LatLng> poly = new ArrayList<>();
+            int index = 0, len = encoded.length();
+            int lat = 0, lng = 0;
+            while (index < len) {
+                int b, shift = 0, result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lat += dlat;
+                shift = 0;
+                result = 0;
+                do {
+                    b = encoded.charAt(index++) - 63;
+                    result |= (b & 0x1f) << shift;
+                    shift += 5;
+                } while (b >= 0x20);
+                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+                lng += dlng;
+                LatLng p = new LatLng((((double) lat / 1E5)),
+                        (((double) lng / 1E5)));
+                poly.add(p);
+            }
+            return poly;
+        }
+
+        private List<LatLng> getDirectionPolylines(List<RouteObject> routes) {
+            directionList = new ArrayList<LatLng>();
+            for (RouteObject route : routes) {
+                List<LegsObject> legs = route.getLegs();
+                for (LegsObject leg : legs) {
+                    List<StepsObject> steps = leg.getSteps();
+                    for (StepsObject step : steps) {
+                        PolylineObject polyline = step.getPolyline();
+                        String points = polyline.getPoints();
+                        List<LatLng> singlePolyline = decodePoly(points);
+                        directionList.addAll(singlePolyline);
+                    }
+                }
+            }
+            return directionList;
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            directionList = getDirectionPolylines(routeObjectList);
+            return PolyUtil.encode(directionList);
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            Toast.makeText(getApplicationContext(), "LOADING", Toast.LENGTH_SHORT).show();
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(String polyEncode) {
+            Log.d(TAG, "onPostExecute: "+ polyEncode);
+        }
+    }
+
+    /* @Override
+    public void onMapReady(GoogleMap googleMap) {
+        MapsInitializer.initialize(getApplicationContext());
+        googleMap.setOnMapClickListener(this);
+        map = googleMap;
+        if (retrievedLatLongFromJson == null) {
+            LatLng latLng = new LatLng(originLat, originLong);
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 48f));
+            map.addMarker(new MarkerOptions().position(latLng));
+        } else {
+            setMapLocation(retrievedLatLongFromJson);
+        }
+    }*/
+
+
+    /*public void setMapLocation(List<LatLng> latLngs) {
+        if (map == null) return;
+        if (originLat == null | originLong == null) {
+            return;
+        }
+        addMarkersAndCameraAngle(latLngs);
+        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+    }*/
+
+    /*private void addMarkersAndCameraAngle(List<LatLng> latLngs) {
+        options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
+        options.addAll(latLngs);
+        polyline = map.addPolyline(options);
+        if (polyline.getPoints() != null) {
+            GoogleMapHelper.addMarkersOfOriginDestination(map, originLat, originLong, destinationLat, destinationLong);
+            GoogleMapHelper.drawRouteOnMap(polyline, map, latLngs);
+        }
+    }*/
+
+    /* gson = new Gson();
+
+        *//*String directionObjectJson = rideRequest.getmDirections();*//*
+        String directionListJson = rideRequest.getDirectionListJson();
+        Type listOfLatLong = new TypeToken<List<LatLng>>() {
+        }.getType();
+        retrievedLatLongFromJson = gson.fromJson(directionListJson, listOfLatLong);*/
 
 }

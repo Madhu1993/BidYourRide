@@ -28,7 +28,7 @@ public class RequestedRidesFragment extends Fragment {
 
         mPagerAdapter = new FragmentPagerAdapter(getChildFragmentManager()) {
             private final Fragment[] mFragments = new Fragment[]{new RequestedRidesTodayFragment(),
-                    new AvailableRidesFragment()
+                    new RequestedRideUpcomingFragment()
             };
             private final String[] mFragmentNames = new String[]{getString(R.string.today),
                     getString(R.string.upcoming)

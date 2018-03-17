@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="400dp"
-    app:cardCornerRadius="2dp"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="15dp"
     android:clickable="true"
     android:focusable="true"
+    app:cardCornerRadius="2dp"
     app:cardElevation="2dp"
-    android:layout_marginTop="15dp"
     app:cardPreventCornerOverlap="false">
 
     <RelativeLayout
@@ -64,13 +64,59 @@
             android:layout_marginStart="5dp"
             android:layout_marginTop="10dp" />
 
-        <com.google.android.gms.maps.MapView
+        <ImageView
             android:id="@+id/map"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="200dp"
+            android:layout_alignParentStart="true"
             android:layout_below="@id/incident_text"
-            map:liteMode="true"
-            map:mapType="none" />
+            android:scaleType="fitXY"
+            android:src="@drawable/ic_home_black_48dp" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/map">
+
+            <LinearLayout
+                android:id="@+id/ll_date_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/date_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/time_tv"
+                    android:layout_marginStart="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_distance_and_travel_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/ll_date_time"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/distace_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/duration_tv"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="10dp"/>
+
+            </LinearLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:id="@+id/linearLayout"

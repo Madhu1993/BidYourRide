@@ -43,9 +43,9 @@ public class MainActivity extends BaseActivity {
         int[] icons = {
                 R.drawable.ic_directions_car_black_48dp,
                 //fake center fragment, so that it creates place for raised center tab.
-                R.drawable.add_story,
+                //R.drawable.add_story,
 
-                R.drawable.add_story,
+                R.drawable.ic_location_on_black_48dp,
         };
         tabLayout = findViewById(R.id.tab_layout);
         viewPager =  findViewById(R.id.main_tab_content);
@@ -68,9 +68,9 @@ public class MainActivity extends BaseActivity {
         adapter.addFrag(new RequestedRidesFragment(), "Requests");
 
         //fake center fragment, so that it creates place for raised center tab.
-        adapter.addFrag(new AvailableRidesFragment(), "Sample ");
+        //adapter.addFrag(new AvailableRidesFragment(), "Sample ");
 
-        adapter.addFrag(new AvailableRidesFragment(), "Rides");
+        adapter.addFrag(new AvailableRidesFragment(), "Available");
         viewPager.setAdapter(adapter);
     }
 

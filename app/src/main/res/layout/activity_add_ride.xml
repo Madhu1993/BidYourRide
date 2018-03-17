@@ -97,41 +97,11 @@
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/max_distance_between_locations_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/destination_ll"
-            android:paddingBottom="10dp"
-            android:paddingTop="10dp">
-
-            <TextView
-                android:id="@+id/max_distance_tv"
-                android:text="@string/maxDistance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:focusable="true"
-                android:focusableInTouchMode="true" />
-
-            <TextView
-                android:id="@+id/max_distance_result"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/max_distance_tv"
-                android:ellipsize="end"
-                android:paddingLeft="10dp"
-                android:maxLines="1"
-                android:nextFocusLeft="@id/max_distance_tv"
-                android:nextFocusUp="@id/max_distance_tv"
-                android:textSize="15sp" />
-
-        </RelativeLayout>
-
         <LinearLayout
             android:id="@+id/date_picker_ll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/max_distance_between_locations_layout"
+            android:layout_below="@+id/destination_ll"
             android:paddingTop="10dp">
 
             <Button

@@ -4,8 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Typeface;
-import android.icu.util.Calendar;
+import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -15,25 +14,30 @@ import android.support.v13.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -45,33 +49,28 @@ import com.google.gson.Gson;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import java.io.ByteArrayOutputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import bidyourride.kurama.com.bidyourride.Config;
 import bidyourride.kurama.com.bidyourride.R;
 import bidyourride.kurama.com.bidyourride.helper.AddRideActivityHelper;
 import bidyourride.kurama.com.bidyourride.model.Category;
 import bidyourride.kurama.com.bidyourride.model.DirectionObject;
 import bidyourride.kurama.com.bidyourride.model.GsonRequest;
-import bidyourride.kurama.com.bidyourride.model.LegsObject;
-import bidyourride.kurama.com.bidyourride.model.LocationResponse;
-import bidyourride.kurama.com.bidyourride.model.PolylineObject;
+import bidyourride.kurama.com.bidyourride.model.Overview_polyline;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.model.RouteObject;
-import bidyourride.kurama.com.bidyourride.model.StepsObject;
 import bidyourride.kurama.com.bidyourride.model.User;
 import bidyourride.kurama.com.bidyourride.rest.Helper;
-import bidyourride.kurama.com.bidyourride.rest.RetrofitApiInterface;
-import bidyourride.kurama.com.bidyourride.rest.RetrofitLocationClient;
 import bidyourride.kurama.com.bidyourride.rest.VolleySingleton;
 import bidyourride.kurama.com.bidyourride.view.CircleImageView;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * Created by madhukurapati on 3/7/18.
@@ -84,25 +83,28 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     private AutocompleteFilter autocompleteFilter;
     private Intent intent;
     private CircleImageView originImage, destinationImage;
-    private TextView datePicker, timePicker, maxDistancetv;
+    private TextView datePicker, timePicker;
     private Button datePicketButton, timePickerButton, submit;
     private Calendar calendar;
     private Location originLatLong, destLatLong;
-    private float distanceBwOriginAndDest;
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mDatabase;
-    private Double lat;
-    private Double longitude;
-    private String location;
     private String originCityName;
     private String destinationCityName;
     private String typeOfRequest;
-    private String originLat;
-    private String originLong;
-    private String destinationLat;
-    private String destinationLong;
+    private String originLatString = "";
+    private String originLongString = "";
+    private String destinationLatString = " ";
+    private String destinationLongString = " ";
+    private String directionObjectJson;
+    private String directionListJson;
+    Double destinationlat;
+    Double destinationlongitude;
+    Double originLat;
+    Double originLong;
     Gson gson;
+    String localTimeForFirebase;
 
     static final int ORIGIN_AUTOCOMPLETE_REQUEST_CODE = 1;
     static final int DESTINATION_AUTOCOMPLETE_REQUEST_CODE = 2;
@@ -135,7 +137,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         destinationLocation = findViewById(R.id.destination_location);
         datePicker = findViewById(R.id.date_picker_tv);
         timePicker = findViewById(R.id.time_picker_tv);
-        maxDistancetv = findViewById(R.id.max_distance_result);
         datePicketButton = findViewById(R.id.date_picker_button);
         timePickerButton = findViewById(R.id.time_picker_button);
         submit = findViewById(R.id.submit);
@@ -147,8 +148,6 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         calendar = Calendar.getInstance();
         originLatLong = new Location("");
         destLatLong = new Location("");
-
-        maxDistancetv.setTypeface(null, Typeface.BOLD);
 
         spinner = findViewById(R.id.spinner);
         setDataToSpinner();
@@ -235,8 +234,8 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     private void setDataToSpinner() {
         ArrayList<Category> categoryArrayList = new ArrayList<>();
-        categoryArrayList.add(new Category(" 1", " Request A Ride "));
-        categoryArrayList.add(new Category(" 2", " Give A Ride "));
+        categoryArrayList.add(new Category(" 1", "Request A Ride "));
+        categoryArrayList.add(new Category(" 2", "Give A Ride "));
 
         ArrayAdapter<Category> dataAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, categoryArrayList);
         spinner.setAdapter(dataAdapter);
@@ -244,15 +243,12 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        String item = parent.getItemAtPosition(position).toString();
-
-        int idObtained = (int) id;
-        switch (idObtained) {
-            case 1:
+        switch (position) {
+            case 0:
                 typeOfRequest = "1";
                 return;
 
-            case 2:
+            case 1:
                 typeOfRequest = "2";
         }
 
@@ -307,18 +303,14 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             Place place = PlaceAutocomplete.getPlace(this, data);
             destinationLocation.setText(place.getAddress());
             removeErrorRequired(R.id.destination_location);
-            Double lat = place.getLatLng().latitude;
-            Double longitude = place.getLatLng().longitude;
+            destinationlat = place.getLatLng().latitude;
+            destinationlongitude = place.getLatLng().longitude;
 
-            destinationCityName = getCityName(lat, longitude);
-            destLatLong.setLatitude(lat);
-            destLatLong.setLongitude(longitude);
-            destinationLat = AddRideActivityHelper.convertDoubleToString(lat);
-            destinationLong = AddRideActivityHelper.convertDoubleToString(longitude);
-
-            if (!isOriginFieldEmpty()) {
-                findTheDistance();
-            }
+            destinationCityName = getCityName(destinationlat, destinationlongitude);
+            destLatLong.setLatitude(destinationlat);
+            destLatLong.setLongitude(destinationlongitude);
+            destinationLatString = AddRideActivityHelper.convertDoubleToString(destinationlat);
+            destinationLongString = AddRideActivityHelper.convertDoubleToString(destinationlongitude);
             Log.d("", "checkIfDestinationResultIsOk: " + place.getLatLng());
         } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
             //Status status = PlaceAutocomplete.getStatus(this, data);
@@ -328,45 +320,23 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         }
     }
 
-    private void findTheDistance() {
-        try {
-            distanceBwOriginAndDest = originLatLong.distanceTo(destLatLong);
-            Double miles = AddRideActivityHelper.getMiles(distanceBwOriginAndDest);
-            int a = (int) Math.round(miles);
-            String str1 = Integer.toString(a);
-            String str2 = " miles";
-            String result = str1.concat(str2);
-            maxDistancetv.setText(result);
-        } catch (Exception e) {
-            Log.d("AddRideActivity", "findTheDistance: " + e);
-        }
-
-    }
-
     private void checkIfOriginResultIsOk(int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             Place place = PlaceAutocomplete.getPlace(this, data);
             originLocation.setText(place.getAddress());
-            Double lat = place.getLatLng().latitude;
-            Double longitude = place.getLatLng().longitude;
+            originLat = place.getLatLng().latitude;
+            originLong = place.getLatLng().longitude;
 
-            originCityName = getCityName(lat, longitude);
-            originLatLong.setLatitude(lat);
-            originLatLong.setLongitude(longitude);
-            originLat = AddRideActivityHelper.convertDoubleToString(lat);
-            originLong = AddRideActivityHelper.convertDoubleToString(longitude);
+            originCityName = getCityName(originLat, originLong);
+            originLatLong.setLatitude(originLat);
+            originLatLong.setLongitude(originLong);
+            originLatString = AddRideActivityHelper.convertDoubleToString(originLat);
+            originLongString = AddRideActivityHelper.convertDoubleToString(originLong);
 
-
-            if (!isDestFieldEmpty()) {
-                findTheDistance();
-            }
             removeErrorRequired(R.id.origin_location);
         } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-            //Status status = PlaceAutocomplete.getStatus(this, data);
-            // TODO: Handle the error.
 
         } else if (resultCode == RESULT_CANCELED) {
-            // The user canceled the operation.
         }
     }
 
@@ -450,15 +420,20 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
         }
         String time = hourOfDay + ":" + minute + " " + dayMode;
         timePicker.setText(time);
+
         removeErrorRequired(R.id.time_picker_tv);
 
     }
 
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-        String date = (monthOfYear + 1) + "/" + dayOfMonth + "/" + year;
-        datePicker.setText(date);
+        //2018-03-16
+        DecimalFormat mFormat = new DecimalFormat("00");
+        monthOfYear = monthOfYear + 1;
+        String derivedDate = (year) + "-" + ((mFormat.format(Double.valueOf(monthOfYear))) + "-" + mFormat.format(Double.valueOf(dayOfMonth)));
+        datePicker.setText(derivedDate);
         removeErrorRequired(R.id.date_picker_tv);
+
     }
 
     @Override
@@ -473,73 +448,49 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             case R.id.submit:
                 if (checkLocationPermission()) {
                     getPolylines();
-                } else {
                 }
         }
 
     }
 
-    public void addRideToFirebase(final String directionObjectJson, final String directionListJson) {
+    public void addRideToFirebase(final String directionObjectJson, final String directionListJson, final String encodedMapString) {
         if (!isDestFieldEmpty() & !isOriginFieldEmpty() & !isDatePickerEmpty() & !isTimePickerEmpty()) {
             final String time = timePicker.getText().toString();
             final String date = datePicker.getText().toString();
-            final String distance = maxDistancetv.getText().toString();
             final String originFullAddress = originLocation.getText().toString();
             final String destinationFullAddress = destinationLocation.getText().toString();
             if (TextUtils.isEmpty(typeOfRequest)) {
                 typeOfRequest = "1";
             }
-
-            RetrofitApiInterface locationClient =
-                    RetrofitLocationClient.getClient().create(RetrofitApiInterface.class);
-
-            Call<LocationResponse> call = locationClient.getLocation(Config.GOOGLE_API_KEY);
-            Log.d(TAG, "submitRide: ");
-            call.enqueue(new Callback<LocationResponse>() {
-                @Override
-                public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
-                    LocationResponse lr = response.body();
-                    location = getCityName(lr.getLocation().getLat(), lr.getLocation().getLng());
-                    final String userId = getUid();
-                    mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
-                            new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    User user = dataSnapshot.getValue(User.class);
-                                    if (user == null) {
-                                        Log.e(TAG, "User " + userId + " is unexpectedly null");
-                                        Toast.makeText(AddRideActivity.this,
-                                                "Error: could not fetch user.",
-                                                Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        String title = concatenateOriginAndDest(originCityName, destinationCityName);
-                                        try {
-                                            String capTitle = AddRideActivityHelper.capitalize(title);
-                                            writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
-                                        } catch (Exception e) {
-                                            writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
-                                        }
-                                    }
-                                    //setEditingEnabled(true);
-                                    finish();
-                                    // [END_EXCLUDE]
+            final String userId = getUid();
+            mDatabase.child("users").child(userId).addListenerForSingleValueEvent(
+                    new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            User user = dataSnapshot.getValue(User.class);
+                            if (user == null) {
+                                Log.e(TAG, "User " + userId + " is unexpectedly null");
+                                Toast.makeText(AddRideActivity.this,
+                                        "Error: could not fetch user.",
+                                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                String title = concatenateOriginAndDest(originCityName, destinationCityName);
+                                try {
+                                    String capTitle = AddRideActivityHelper.capitalize(title);
+                                    writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, date, time, originCityName, destinationCityName, originLatString, originLongString, destinationLatString, destinationLongString, directionObjectJson, encodedMapString);
+                                } catch (Exception e) {
+                                    writeNewRide(userId, user.username, title, originFullAddress, destinationFullAddress, typeOfRequest, date, time, originCityName, destinationCityName, originLatString, originLongString, destinationLatString, destinationLongString, directionObjectJson, encodedMapString);
                                 }
+                            }
+                            finish();
+                        }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-                                    Log.w(TAG, "getUser:onCancelled", databaseError.toException());
-                                    //setEditingEnabled(true);
-                                }
-                            });
-                    // [END single_value_read]
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w(TAG, "getUser:onCancelled", databaseError.toException());
+                        }
+                    });
 
-                }
-
-                @Override
-                public void onFailure(Call<LocationResponse> call, Throwable t) {
-                    System.out.println("response" + t);
-                }
-            });
         } else {
             setRequiredErrorForEmptyFields();
         }
@@ -564,21 +515,29 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     }
 
     private void getPolylines() {
-        String directionApiPath = Helper.getUrl(String.valueOf(originLat), String.valueOf(originLong),
-                String.valueOf(destinationLat), String.valueOf(destinationLong));
-        getDirectionFromDirectionApiServer(directionApiPath);
+        if (!isDestFieldEmpty() & !isOriginFieldEmpty() & !isDatePickerEmpty() & !isTimePickerEmpty()) {
+            String directionApiPath = Helper.getUrl(String.valueOf(originLatString), String.valueOf(originLongString),
+                    String.valueOf(destinationLatString), String.valueOf(destinationLongString));
+            getDirectionFromDirectionApiServer(directionApiPath);
+        } else {
+            setRequiredErrorForEmptyFields();
+        }
     }
 
-    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String distance, String date, String time, String location, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String directionObjectJson, String directionListJson) {
+    private void writeNewRide(String userId, String username, String capTitle, String origin, String destination, String typeOfRequest, String date, String time, String originCityName, String destinationCityName, String originLat, String originLong, String destinationLat, String destinationLong, String directionObjectJson, String encodedMapString) {
         String key = mDatabase.child("rides").push().getKey();
 
-        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, distance, date, time, location, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, directionListJson);
+        RideRequest rideRequest = new RideRequest(userId, username, capTitle, origin, destination, typeOfRequest, date, time, originCityName, destinationCityName, originLat, originLong, destinationLat, destinationLong, directionObjectJson, encodedMapString);
         Map<String, Object> rideValues = rideRequest.toMap();
         Map<String, Object> childUpdates = new HashMap<>();
-        childUpdates.put("/rides/" + key, rideValues);
+
+        if (typeOfRequest.equals("1")) {
+            childUpdates.put("/rides-requested/" + key, rideValues);
+        } else if (typeOfRequest.equals("2")) {
+            childUpdates.put("/rides-provided/" + key, rideValues);
+        }
         childUpdates.put("/user-rides/" + userId + "/" + key, rideValues);
         mDatabase.updateChildren(childUpdates);
-
     }
 
     public void getDirectionFromDirectionApiServer(String url) {
@@ -601,14 +560,11 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             public void onResponse(DirectionObject response) {
                 try {
                     Log.d("JSON Response", response.toString());
-                    if (response.getStatus().equals("OK")) {
-                        String direction = gson.toJson(response);
-                        GetDirectionsFromPositions getDirectionsFromPositions = new GetDirectionsFromPositions(direction, response.getRoutes());
-                        getDirectionsFromPositions.execute();
-                        //addRideToFirebase(direction);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "", Toast.LENGTH_SHORT).show();
-                    }
+                    directionObjectJson = gson.toJson(response);
+                    List<RouteObject> routeObject = response.getRoutes();
+                    Overview_polyline overview_polyline = routeObject.get(0).getOverview_polyline();
+                    String point = overview_polyline.getPoints();
+                    setImageView(point);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -626,22 +582,19 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
     }
 
     private String concatenateOriginAndDest(String originCityName, String destinationCityName) {
-        String str1 = originCityName + " to ";
-        String str2 = destinationCityName;
-
-        return str1.concat(str2);
-    }
-
-    private void setEditingEnabled(boolean enabled) {
-        originLocation.setEnabled(enabled);
-        destinationLocation.setEnabled(enabled);
-        if (enabled) {
-            submit.setVisibility(View.VISIBLE);
+        if (originCityName.toLowerCase().contains("Null".toLowerCase())) {
+            if (destinationCityName.toLowerCase().contains("Null".toLowerCase())) {
+                return " ";
+            } else {
+                String str1 = " To ";
+                return str1.concat(destinationCityName);
+            }
         } else {
-            submit.setVisibility(View.GONE);
+            String str1 = originCityName + " to ";
+            return str1.concat(destinationCityName);
         }
-    }
 
+    }
 
     private void showTimePicker() {
         TimePickerDialog tpd = TimePickerDialog.newInstance(this, Calendar.HOUR_OF_DAY, Calendar.MINUTE, false);
@@ -656,8 +609,30 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 calendar.get(Calendar.MONTH),
                 calendar.get(Calendar.DAY_OF_MONTH)
         );
+
+        Calendar minDate = Calendar.getInstance();
+        Calendar maxDate = Calendar.getInstance();
+        maxDate.setTime(getMaxDate());
+
+        dpd.setMinDate(minDate);
+        dpd.setMaxDate(maxDate);
         dpd.show(getFragmentManager(), "Choose Date:");
+
+        dpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                Log.d("TimePicker", "Dialog was cancelled");
+            }
+        });
     }
+
+    private Date getMaxDate() {
+        int noOfDays = 10; //i.e two weeks
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_YEAR, noOfDays);
+        return calendar.getTime();
+    }
+
 
     private String getCityName(Double lt, Double lg) {
         Geocoder geocoder = new Geocoder(this, Locale.getDefault());
@@ -667,111 +642,62 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
             cityName = addresses.get(0).getLocality();
             return cityName;
         } catch (Exception e) {
-
+            return " ";
         }
-        return " ";
+
     }
 
     public class PostToFirebase extends AsyncTask<Void, Void, Void> {
         String directionOb;
-        String direectionList;
+        String directionList;
+        String encodedMapString;
 
-        public PostToFirebase(String directionOb, String direectionList) {
+        public PostToFirebase(String directionOb, String directionList, String encodedMapString) {
             this.directionOb = directionOb;
-            this.direectionList = direectionList;
+            this.directionList = directionList;
+            this.encodedMapString = encodedMapString;
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            addRideToFirebase(directionOb, direectionList);
+            addRideToFirebase(directionOb, directionList, encodedMapString);
             return null;
         }
 
         @Override
         protected void onProgressUpdate(Void... values) {
-            Toast.makeText(AddRideActivity.this, "Uploading To Firebase", Toast.LENGTH_SHORT).show();
         }
     }
 
-
-    public class GetDirectionsFromPositions extends AsyncTask<Void, Void, List<LatLng>> {
-        List<LatLng> directionList;
-        List<RouteObject> routeObjectList;
-        String directionObjectJson;
-
-        public GetDirectionsFromPositions(String directionObjectJson, List<RouteObject> routeObjectList) {
-            this.routeObjectList = routeObjectList;
-            this.directionObjectJson = directionObjectJson;
-        }
-
-        private List<LatLng> decodePoly(String encoded) {
-            List<LatLng> poly = new ArrayList<>();
-            int index = 0, len = encoded.length();
-            int lat = 0, lng = 0;
-            while (index < len) {
-                int b, shift = 0, result = 0;
-                do {
-                    b = encoded.charAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-                lat += dlat;
-                shift = 0;
-                result = 0;
-                do {
-                    b = encoded.charAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-                lng += dlng;
-                LatLng p = new LatLng((((double) lat / 1E5)),
-                        (((double) lng / 1E5)));
-                poly.add(p);
+    public void setImageView(String polyEncode) {
+        String directionApiPath = Helper.getStaticImageApi(originLat, originLong, destinationlat, destinationlongitude, polyEncode);
+        Log.d(TAG, "setImageView: " + directionApiPath);
+        ImageRequest imageRequest = new ImageRequest(directionApiPath, new Response.Listener<Bitmap>() {
+            @Override
+            public void onResponse(final Bitmap response) {
+                encodeBitmapToString(response);
             }
-            return poly;
-        }
-
-        private List<LatLng> getDirectionPolylines(List<RouteObject> routes) {
-            directionList = new ArrayList<LatLng>();
-            for (RouteObject route : routes) {
-                List<LegsObject> legs = route.getLegs();
-                for (LegsObject leg : legs) {
-                    List<StepsObject> steps = leg.getSteps();
-                    for (StepsObject step : steps) {
-                        PolylineObject polyline = step.getPolyline();
-                        String points = polyline.getPoints();
-                        List<LatLng> singlePolyline = decodePoly(points);
-                        directionList.addAll(singlePolyline);
-                    }
-                }
+        }, 0, 0, ImageView.ScaleType.FIT_XY, null, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d(TAG, "onErrorResponse: Volley" + error.toString());
             }
-            return directionList;
-        }
+        });
 
-        @Override
-        protected List<LatLng> doInBackground(Void... voids) {
-            directionList = getDirectionPolylines(routeObjectList);
-            return directionList;
-        }
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+        requestQueue.add(imageRequest);
 
-        @Override
-        protected void onProgressUpdate(Void... values) {
-            Toast.makeText(getApplicationContext(), "LOADING", Toast.LENGTH_SHORT).show();
-            super.onProgressUpdate(values);
-        }
-
-        @Override
-        protected void onPostExecute(List<LatLng> latLngs) {
-            String directionListJson = gson.toJson(latLngs);
-            Log.d(TAG, "onPostExecute:directList " + directionListJson);
-            Log.d(TAG, "onPostExecute:directionObject " + directionObjectJson);
-            //addRideToFirebase(directionObjectJson, directionListJson);
-            PostToFirebase postToFirebase = new PostToFirebase(directionObjectJson, directionListJson);
-            postToFirebase.execute();
-        }
     }
+
+    private void encodeBitmapToString(Bitmap response) {
+        ByteArrayOutputStream baos2 = new ByteArrayOutputStream();
+        response.compress(Bitmap.CompressFormat.PNG, 100, baos2);
+        String encodeMapString = Base64.encodeToString(baos2.toByteArray(), Base64.DEFAULT);
+        PostToFirebase postToFirebase = new PostToFirebase(directionObjectJson, directionListJson, encodeMapString);
+        Log.d(TAG, "encodeBitmapToString:+ before postToFirebase ");
+        postToFirebase.execute();
+    }
+
 
 }
 

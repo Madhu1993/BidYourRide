@@ -1,5 +1,6 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -13,7 +14,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -22,29 +22,35 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.Transaction;
+import com.google.gson.Gson;
+
+import java.util.List;
 
 import bidyourride.kurama.com.bidyourride.R;
+import bidyourride.kurama.com.bidyourride.model.DirectionObject;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
-import bidyourride.kurama.com.bidyourride.viewholder.PostViewHolder;
+import bidyourride.kurama.com.bidyourride.viewholder.RidesViewHolder;
 
 /**
  * Created by madhukurapati on 11/20/17.
  */
 
-public abstract class RequestedRidesTodayListFragment extends Fragment {
+public abstract class RidesListFragment extends Fragment {
 
-    private static final String TAG = "RequestedRidesTodayListFragment";
+    private static final String TAG = "RidesListFragment";
     private Handler mHandler;
 
     // [START define_database_reference]
     private DatabaseReference mDatabase;
     // [END define_database_reference]
 
-    private FirebaseRecyclerAdapter<RideRequest, PostViewHolder> mAdapter;
+    private FirebaseRecyclerAdapter<RideRequest, RidesViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
+    private Gson gson;
+    DirectionObject directionObject;
 
-    public RequestedRidesTodayListFragment() {
+    public RidesListFragment() {
     }
 
     @Override
@@ -73,58 +79,42 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
         mManager.setStackFromEnd(true);
         mManager.setItemPrefetchEnabled(true);
         mRecycler.setLayoutManager(mManager);
+        gson = new Gson();
+
 
         // Set up FirebaseRecyclerAdapter with the Query
         Query ridesQuery = getQuery(mDatabase);
 
-        mAdapter = new FirebaseRecyclerAdapter<RideRequest, PostViewHolder>(RideRequest.class, R.layout.trip_details_card_view,
-                PostViewHolder.class, ridesQuery) {
-
+        mAdapter = new FirebaseRecyclerAdapter<RideRequest, RidesViewHolder>(RideRequest.class, R.layout.rides_details_card_view,
+                RidesViewHolder.class, ridesQuery) {
             @Override
-            public DatabaseReference getRef(int position) {
-                return super.getRef(position);
+            public void onBindViewHolder(RidesViewHolder holder, int position, List<Object> payloads) {
+                super.onBindViewHolder(holder, position, payloads);
             }
 
             @Override
-            public long getItemId(int position) {
-                return super.getItemId(position);
-            }
-
-            @Override
-            public int getItemCount() {
-                return super.getItemCount();
-            }
-
-            @Override
-            public RideRequest getItem(int position) {
-                return super.getItem(position);
-            }
-
-            @Override
-            protected void populateViewHolder(final PostViewHolder viewHolder, final RideRequest model, final int position) {
+            protected void populateViewHolder(final RidesViewHolder viewHolder, final RideRequest model, final int position) {
                 if (viewHolder == null) {
                     return;
                 }
                 final DatabaseReference rideRef = getRef(position);
-                // Set click listener for the whole post view
-                final String rideKey = rideRef.getKey();
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        String directionObjectJson = model.getmDirections();
+                        directionObject = gson.fromJson(directionObjectJson, DirectionObject.class);
+                        Intent intent = new Intent();
+
                     }
                 });
 
-                // Determine if the current user has liked this post and set UI accordingly
-                if (model.stars.containsKey(getUid())) {
-                    viewHolder.starView.setImageResource(R.drawable.ic_toggle_star_24);
-                } else {
-                    viewHolder.starView.setImageResource(R.drawable.ic_toggle_star_outline_24);
-                }
+                setStarImage(viewHolder, model);
 
                 // Bind Ride to ViewHolder, setting OnClickListener for the star button
-                viewHolder.bindToPost(getContext(), rideRef.getKey(), model, new View.OnClickListener() {
+                viewHolder.bindToPost( model, new View.OnClickListener() {
                     @Override
                     public void onClick(View starView) {
+
                         DatabaseReference globalPostRef = mDatabase.child("rides").child(rideRef.getKey());
                         DatabaseReference userPostRef = mDatabase.child("user-rides").child(model.uid).child(rideRef.getKey());
                         onStarClicked(globalPostRef);
@@ -132,7 +122,15 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
                     }
                 });
 
-                viewHolder.bindView(position);
+            }
+
+            private void setStarImage(RidesViewHolder viewHolder, RideRequest model) {
+                // Determine if the current user has liked this post and set UI accordingly
+                if (model.stars.containsKey(getUid())) {
+                    viewHolder.starView.setImageResource(R.drawable.ic_toggle_star_24);
+                } else {
+                    viewHolder.starView.setImageResource(R.drawable.ic_toggle_star_outline_24);
+                }
             }
 
             @Override
@@ -141,45 +139,21 @@ public abstract class RequestedRidesTodayListFragment extends Fragment {
             }
 
             @Override
-            public boolean onFailedToRecycleView(PostViewHolder holder) {
+            public boolean onFailedToRecycleView(RidesViewHolder holder) {
                 return super.onFailedToRecycleView(holder);
             }
 
-            @Override
-            public void onBindViewHolder(PostViewHolder viewHolder, int position) {
-                if (viewHolder == null) {
-                    return;
-                }
-                super.onBindViewHolder(viewHolder, position);
-            }
-
 
             @Override
-            public PostViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            public RidesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View inflatedView = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.trip_details_card_view, parent, false);
-                return new PostViewHolder(inflatedView);
+                        .inflate(R.layout.rides_details_card_view, parent, false);
+                return new RidesViewHolder(inflatedView);
             }
 
         };
         mRecycler.setAdapter(mAdapter);
-        mRecycler.setRecyclerListener(mRecycleListener);
     }
-
-    public RecyclerView.RecyclerListener mRecycleListener = new RecyclerView.RecyclerListener() {
-
-        @Override
-        public void onViewRecycled(RecyclerView.ViewHolder holder) {
-            PostViewHolder mapHolder = (PostViewHolder) holder;
-            if (mapHolder != null && mapHolder.map != null) {
-                // Clear the map and free up resources by changing the map type to none.
-                // Also reset the map when it gets reattached to layout, so the previous map would
-                // not be displayed.
-                mapHolder.map.clear();
-                mapHolder.map.setMapType(GoogleMap.MAP_TYPE_NONE);
-            }
-        }
-    };
 
     private void onStarClicked(DatabaseReference postRef) {
         postRef.runTransaction(new Transaction.Handler() {

@@ -1,21 +1,30 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
+import android.util.Log;
+
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
+
+import java.time.LocalDate;
 
 /**
  * Created by madhukurapati on 3/10/18.
  */
 
-public class RequestedRidesTodayFragment extends RequestedRidesTodayListFragment{
+public class RequestedRidesTodayFragment extends RidesListFragment {
+    String todaysDateForFirebase, tomorrowDateForFirebase;
+    private static final String TAG = "RequestedRidesTodayFragment";
 
     public RequestedRidesTodayFragment() {}
 
     @Override
     public Query getQuery(DatabaseReference databaseReference) {
+        todaysDateForFirebase = String.valueOf(LocalDate.now());
+        Log.d(TAG, "getQuery: "+ todaysDateForFirebase);
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        tomorrowDateForFirebase = tomorrow.toString();
 
-        Query todaysRidesRequestQuery = databaseReference.child("rides")
-                .limitToFirst(100);
+        Query todaysRidesRequestQuery = databaseReference.child("rides-requested").startAt(todaysDateForFirebase).endAt(todaysDateForFirebase).orderByChild("dateOfRide").limitToFirst(100);
 
         return todaysRidesRequestQuery;
     }
