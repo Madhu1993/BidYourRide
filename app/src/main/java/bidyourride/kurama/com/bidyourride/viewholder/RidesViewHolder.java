@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -86,7 +85,7 @@ public class RidesViewHolder extends RecyclerView.ViewHolder {
             Distance distance = legsObjects.get(0).getDistance();
             Duration duration = legsObjects.get(0).getDuration();
             distanceView.setText(distance.getText());
-            String avgTimeText = "Travel time: " + duration.getText();
+            String avgTimeText = "Travel duration: " + duration.getText();
             durationView.setText(avgTimeText);
 
         }

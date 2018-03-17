@@ -37,5 +37,6 @@
     <string name="today">Today</string>
     <string name="upcoming">Upcoming</string>
     <string name="avgTime">Avg duration:</string>
+    <string name="comments">Comments</string>
 
 </resources>

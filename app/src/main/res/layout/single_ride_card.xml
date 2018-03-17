@@ -22,28 +22,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true" />
 
-        <ImageView
-            android:id="@+id/location"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="6dp"
-            android:layout_gravity= "center_horizontal"
-            android:background="?attr/selectableItemBackground"
-            android:src="@drawable/location_point"
-            android:layout_toStartOf="@+id/location_name" />
-
-        <TextView
-            android:id="@+id/location_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:src="@drawable/login_logo"
-            android:gravity="center_vertical"
-            tools:text="Pheonix, Arizona"
-            android:layout_alignBottom="@+id/location"
-            android:layout_toStartOf="@+id/star_layout" />
-
         <LinearLayout
             android:id="@+id/star_layout"
             android:layout_width="wrap_content"

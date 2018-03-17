@@ -155,7 +155,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
 
         autocompleteFilter = new AutocompleteFilter.Builder()
                 .setCountry("US")
-                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS)
+                .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ESTABLISHMENT)
                 .build();
 
         try {
@@ -590,7 +590,7 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                 return str1.concat(destinationCityName);
             }
         } else {
-            String str1 = originCityName + " to ";
+            String str1 = originCityName + " --> ";
             return str1.concat(destinationCityName);
         }
 

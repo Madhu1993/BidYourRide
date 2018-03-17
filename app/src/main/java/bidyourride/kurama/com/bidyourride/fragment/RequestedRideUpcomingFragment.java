@@ -1,7 +1,5 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
-import android.util.Log;
-
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
 
@@ -15,7 +13,8 @@ public class RequestedRideUpcomingFragment extends RidesListFragment {
     String todaysDateForFirebase, tomorrowDateForFirebase, tenDaysFromNowForFirebase;
     private static final String TAG = "RequestedRidesTodayFragment";
 
-    public RequestedRideUpcomingFragment() {}
+    public RequestedRideUpcomingFragment() {
+    }
 
     @Override
     public Query getQuery(DatabaseReference databaseReference) {

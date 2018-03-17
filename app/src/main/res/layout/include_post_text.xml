@@ -15,7 +15,6 @@
         android:gravity="start"
         android:autoLink="web"
         android:textSize="18sp"
-        android:textStyle="bold"
         tools:text="My First Post" />
 
 </LinearLayout>

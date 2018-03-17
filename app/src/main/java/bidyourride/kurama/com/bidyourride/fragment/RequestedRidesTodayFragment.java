@@ -1,5 +1,9 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import com.google.firebase.database.DatabaseReference;
@@ -28,4 +32,10 @@ public class RequestedRidesTodayFragment extends RidesListFragment {
 
         return todaysRidesRequestQuery;
     }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
 }

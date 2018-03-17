@@ -37,6 +37,13 @@
             android:theme="@style/AppTheme">
 
         </activity>
+
+        <activity android:name=".activity.RideDetailsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme">
+
+        </activity>
+
         <activity android:name=".activity.BaseActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">

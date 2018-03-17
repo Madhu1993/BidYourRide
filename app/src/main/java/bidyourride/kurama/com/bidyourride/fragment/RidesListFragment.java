@@ -1,8 +1,11 @@
 package bidyourride.kurama.com.bidyourride.fragment;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -27,6 +30,10 @@ import com.google.gson.Gson;
 import java.util.List;
 
 import bidyourride.kurama.com.bidyourride.R;
+import bidyourride.kurama.com.bidyourride.activity.AddRideActivity;
+import bidyourride.kurama.com.bidyourride.activity.BaseActivity;
+import bidyourride.kurama.com.bidyourride.activity.RideDetailsActivity;
+import bidyourride.kurama.com.bidyourride.helper.ObjectWrapperForBinder;
 import bidyourride.kurama.com.bidyourride.model.DirectionObject;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.viewholder.RidesViewHolder;
@@ -38,17 +45,15 @@ import bidyourride.kurama.com.bidyourride.viewholder.RidesViewHolder;
 public abstract class RidesListFragment extends Fragment {
 
     private static final String TAG = "RidesListFragment";
-    private Handler mHandler;
 
-    // [START define_database_reference]
     private DatabaseReference mDatabase;
-    // [END define_database_reference]
 
     private FirebaseRecyclerAdapter<RideRequest, RidesViewHolder> mAdapter;
     private RecyclerView mRecycler;
     private LinearLayoutManager mManager;
     private Gson gson;
-    DirectionObject directionObject;
+    View rootView;
+    public String rideJson;
 
     public RidesListFragment() {
     }
@@ -57,7 +62,7 @@ public abstract class RidesListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         super.onCreateView(inflater, container, savedInstanceState);
-        View rootView = inflater.inflate(R.layout.fragment_all_rides_today, container, false);
+        rootView = inflater.inflate(R.layout.fragment_all_rides_today, container, false);
 
         // [START create_database_reference]
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -83,10 +88,11 @@ public abstract class RidesListFragment extends Fragment {
 
 
         // Set up FirebaseRecyclerAdapter with the Query
-        Query ridesQuery = getQuery(mDatabase);
+        final Query ridesQuery = getQuery(mDatabase);
 
         mAdapter = new FirebaseRecyclerAdapter<RideRequest, RidesViewHolder>(RideRequest.class, R.layout.rides_details_card_view,
                 RidesViewHolder.class, ridesQuery) {
+
             @Override
             public void onBindViewHolder(RidesViewHolder holder, int position, List<Object> payloads) {
                 super.onBindViewHolder(holder, position, payloads);
@@ -94,16 +100,24 @@ public abstract class RidesListFragment extends Fragment {
 
             @Override
             protected void populateViewHolder(final RidesViewHolder viewHolder, final RideRequest model, final int position) {
+                rideJson = gson.toJson(model);
                 if (viewHolder == null) {
                     return;
                 }
                 final DatabaseReference rideRef = getRef(position);
+                final String rideKey = rideRef.getKey();
                 viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String directionObjectJson = model.getmDirections();
-                        directionObject = gson.fromJson(directionObjectJson, DirectionObject.class);
-                        Intent intent = new Intent();
+                        /*String gsonForRide = gson.toJson(model);
+                        String typeOfReferenceToOpen = model.typeOfRequest;*/
+                        
+                        final Bundle bundle = new Bundle();
+                        bundle.putBinder("rideObject", new ObjectWrapperForBinder(model));
+                        Intent rideDetailsIntent = new Intent(rootView.getContext(), RideDetailsActivity.class);
+                        rideDetailsIntent.putExtras(bundle);
+                        rideDetailsIntent.putExtra(RideDetailsActivity.EXTRA_RIDE_KEY, rideKey);
+                        startActivity(rideDetailsIntent);
 
                     }
                 });
@@ -114,11 +128,15 @@ public abstract class RidesListFragment extends Fragment {
                 viewHolder.bindToPost( model, new View.OnClickListener() {
                     @Override
                     public void onClick(View starView) {
-
-                        DatabaseReference globalPostRef = mDatabase.child("rides").child(rideRef.getKey());
-                        DatabaseReference userPostRef = mDatabase.child("user-rides").child(model.uid).child(rideRef.getKey());
-                        onStarClicked(globalPostRef);
-                        onStarClicked(userPostRef);
+                        if(model.typeOfRequest.equals("1")){
+                            DatabaseReference globalPostRef = mDatabase.child("rides-requested").child(rideRef.getKey());                                               DatabaseReference userPostRef = mDatabase.child("user-rides").child(model.uid).child(rideRef.getKey());
+                            onStarClicked(globalPostRef);
+                            onStarClicked(userPostRef);
+                        }else{
+                            DatabaseReference globalPostRef = mDatabase.child("rides-provided").child(rideRef.getKey());                        DatabaseReference userPostRef = mDatabase.child("user-rides").child(model.uid).child(rideRef.getKey());
+                            onStarClicked(globalPostRef);
+                            onStarClicked(userPostRef);
+                        }
                     }
                 });
 
@@ -212,6 +230,5 @@ public abstract class RidesListFragment extends Fragment {
     }
 
     public abstract Query getQuery(DatabaseReference databaseReference);
-
 }
 

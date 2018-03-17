@@ -1,5 +1,8 @@
 package bidyourride.kurama.com.bidyourride.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.database.Exclude;
 
 import java.util.HashMap;
@@ -9,7 +12,7 @@ import java.util.Map;
  * Created by madhukurapati on 11/20/17.
  */
 
-public class RideRequest {
+public class RideRequest implements Parcelable {
     public String uid;
     public String author;
     public String title;
@@ -47,6 +50,66 @@ public class RideRequest {
         this.directionObjectJson = mDirections;
         this.encodedMapString = encodedMapString;
     }
+
+    protected RideRequest(Parcel in) {
+        uid = in.readString();
+        author = in.readString();
+        title = in.readString();
+        origin = in.readString();
+        destination = in.readString();
+        typeOfRequest = in.readString();
+        distancebetweenOriginAndLocation = in.readString();
+        dateOfRide = in.readString();
+        originLat = in.readString();
+        originLong = in.readString();
+        destinationLat = in.readString();
+        destinationLong = in.readString();
+        timeOfRide = in.readString();
+        originCityName = in.readString();
+        destinationCityName = in.readString();
+        starCount = in.readInt();
+        directionObjectJson = in.readString();
+        encodedMapString = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(uid);
+        dest.writeString(author);
+        dest.writeString(title);
+        dest.writeString(origin);
+        dest.writeString(destination);
+        dest.writeString(typeOfRequest);
+        dest.writeString(distancebetweenOriginAndLocation);
+        dest.writeString(dateOfRide);
+        dest.writeString(originLat);
+        dest.writeString(originLong);
+        dest.writeString(destinationLat);
+        dest.writeString(destinationLong);
+        dest.writeString(timeOfRide);
+        dest.writeString(originCityName);
+        dest.writeString(destinationCityName);
+        dest.writeInt(starCount);
+        dest.writeString(directionObjectJson);
+        dest.writeString(encodedMapString);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<RideRequest> CREATOR = new Creator<RideRequest>() {
+        @Override
+        public RideRequest createFromParcel(Parcel in) {
+            return new RideRequest(in);
+        }
+
+        @Override
+        public RideRequest[] newArray(int size) {
+            return new RideRequest[size];
+        }
+    };
 
     public String getDirectionObjectJson() {
         return directionObjectJson;
@@ -240,6 +303,5 @@ public class RideRequest {
     public void setStars(Map<String, Boolean> stars) {
         this.stars = stars;
     }
-    // [END post_to_map]
 
 }

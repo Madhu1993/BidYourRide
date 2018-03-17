@@ -4,20 +4,54 @@ package bidyourride.kurama.com.bidyourride.model;
  * Created by madhukurapati on 3/11/18.
  */
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
-public class DirectionObject {
+
+public class DirectionObject implements Parcelable {
     private List<RouteObject> routes;
     private String status;
-    public DirectionObject(){
+
+    public DirectionObject() {
 
     }
+
     public DirectionObject(List<RouteObject> routes, String status) {
         this.routes = routes;
         this.status = status;
     }
+
+    protected DirectionObject(Parcel in) {
+        status = in.readString();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(status);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<DirectionObject> CREATOR = new Creator<DirectionObject>() {
+        @Override
+        public DirectionObject createFromParcel(Parcel in) {
+            return new DirectionObject(in);
+        }
+
+        @Override
+        public DirectionObject[] newArray(int size) {
+            return new DirectionObject[size];
+        }
+    };
+
     public List<RouteObject> getRoutes() {
         return routes;
     }
+
     public String getStatus() {
         return status;
     }

@@ -36,11 +36,11 @@ public class GoogleMapHelper {
     public static void addMarkersOfOriginDestination(GoogleMap map, Double originLat, Double originLong, Double destinationLat, Double destinationLong) {
         map.addMarker(new MarkerOptions()
                 .position(new LatLng(originLat, originLong))
-                .title("Origin"));
+                .title("O"));
 
         map.addMarker(new MarkerOptions()
                 .position(new LatLng(destinationLat, destinationLong))
-                .title("Destination"));
+                .title("D"));
     }
 
     public static void drawRouteOnMap(Polyline polyline,GoogleMap map, List<LatLng> positions) {
@@ -89,7 +89,7 @@ public class GoogleMapHelper {
         return isCameraPositionSet;
     }
 
-    public class GetDirectionsFromPositions extends AsyncTask<Void, Void, String> {
+    public static class GetDirectionsFromPositions extends AsyncTask<Void, Void, List<LatLng>> {
         List<LatLng> directionList;
         List<RouteObject> routeObjectList;
 
@@ -144,9 +144,9 @@ public class GoogleMapHelper {
         }
 
         @Override
-        protected String doInBackground(Void... voids) {
+        protected List<LatLng> doInBackground(Void... voids) {
             directionList = getDirectionPolylines(routeObjectList);
-            return PolyUtil.encode(directionList);
+            return directionList;
         }
 
         @Override
@@ -156,8 +156,8 @@ public class GoogleMapHelper {
         }
 
         @Override
-        protected void onPostExecute(String polyEncode) {
-            Log.d(TAG, "onPostExecute: "+ polyEncode);
+        protected void onPostExecute(List<LatLng> latLngs) {
+
         }
     }
 
