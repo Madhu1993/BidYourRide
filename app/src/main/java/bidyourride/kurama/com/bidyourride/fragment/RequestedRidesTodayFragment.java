@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 
 import java.time.LocalDate;
@@ -19,12 +20,12 @@ public class RequestedRidesTodayFragment extends RidesListFragment {
     String todaysDateForFirebase, tomorrowDateForFirebase;
     private static final String TAG = "RequestedRidesTodayFragment";
 
+
     public RequestedRidesTodayFragment() {}
 
     @Override
     public Query getQuery(DatabaseReference databaseReference) {
         todaysDateForFirebase = String.valueOf(LocalDate.now());
-        Log.d(TAG, "getQuery: "+ todaysDateForFirebase);
         LocalDate tomorrow = LocalDate.now().plusDays(1);
         tomorrowDateForFirebase = tomorrow.toString();
 

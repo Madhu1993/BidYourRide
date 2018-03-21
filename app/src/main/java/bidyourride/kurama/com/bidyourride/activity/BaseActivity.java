@@ -20,6 +20,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,6 +35,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
 import bidyourride.kurama.com.bidyourride.R;
@@ -50,6 +52,9 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
     private FirebaseUser firebaseUser;
     private GoogleApiClient mGoogleApiClient;
     private String mPhotoURL ;
+    static boolean isInitialized = false;
+    private static String TAG = "BaseActivity";
+
 
     public String getUid() {
         return FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -66,6 +71,17 @@ public class BaseActivity extends AppCompatActivity implements NavigationView.On
 
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
+
+        try{
+            if(!isInitialized){
+                FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+                isInitialized = true;
+            }else {
+                Log.d(TAG,"Already Initialized");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
         drawerToggle = new ActionBarDrawerToggle(
                 this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {

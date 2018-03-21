@@ -4,6 +4,7 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "bidyourride.kurama.com.bidyourride"
+        multiDexEnabled true
         minSdkVersion 26
         targetSdkVersion 26
         versionCode 1

@@ -81,6 +81,9 @@ public class GoogleMapHelper {
                 builder.include(new LatLng(maxLat, maxLon));
                 builder.include(new LatLng(minLat, minLon));
                 map.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 48));
+                if (!map.getUiSettings().isZoomControlsEnabled()) {
+                    map.getUiSettings().setZoomControlsEnabled(true);
+                }
                 isCameraPositionSet = true;
             } catch (Exception e) {
                 Log.d(TAG, "getCameraPositionAndDrawMap: " + e);

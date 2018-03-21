@@ -38,5 +38,9 @@
     <string name="upcoming">Upcoming</string>
     <string name="avgTime">Avg duration:</string>
     <string name="comments">Comments</string>
+    <string name="say_something">Say Something</string>
+    <string name="post">Post</string>
+    <string name="write_a_comment">Write a comment...</string>
+    <string name="postComment">Send</string>
 
 </resources>

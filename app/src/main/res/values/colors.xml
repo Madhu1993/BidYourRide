@@ -16,8 +16,14 @@
     <color name="tabMedium">#2B2B2B</color>
     <color name="tabDark">#a7a7aa</color>
     <color name="tabTransparent">#10ffffff</color>
+    <color name="autumn">#763626</color>
+    <color name="stone">#336B87</color>
 
     <color name="colorActivityBackground">#F1F1F2</color>
     <color name="colorTabLayoutBackground">#FB6542</color>
+
+    <color name="transparent">#00000000</color>
+    <color name="darkish_grey">@color/gray_4a</color>
+    <color name="gray_4a">#4a4a4a</color>
 
 </resources>

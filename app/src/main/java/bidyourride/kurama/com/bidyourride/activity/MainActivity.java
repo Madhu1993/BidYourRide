@@ -85,7 +85,7 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            case R.id.action_search:
+            case R.id.action_add:
                 Intent settingsIntent = new Intent(this, AddRideActivity.class);
                 startActivity(settingsIntent);
             default:

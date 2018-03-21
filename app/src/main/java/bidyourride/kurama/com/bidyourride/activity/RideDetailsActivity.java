@@ -1,8 +1,18 @@
 package bidyourride.kurama.com.bidyourride.activity;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -14,28 +24,36 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import bidyourride.kurama.com.bidyourride.R;
+import bidyourride.kurama.com.bidyourride.adapter.CommentAdapter;
 import bidyourride.kurama.com.bidyourride.helper.GoogleMapHelper;
 import bidyourride.kurama.com.bidyourride.helper.ObjectWrapperForBinder;
+import bidyourride.kurama.com.bidyourride.model.Comment;
 import bidyourride.kurama.com.bidyourride.model.DirectionObject;
+import bidyourride.kurama.com.bidyourride.model.Distance;
+import bidyourride.kurama.com.bidyourride.model.Duration;
 import bidyourride.kurama.com.bidyourride.model.LegsObject;
 import bidyourride.kurama.com.bidyourride.model.PolylineObject;
 import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.model.RouteObject;
 import bidyourride.kurama.com.bidyourride.model.StepsObject;
+import bidyourride.kurama.com.bidyourride.model.User;
 
 /**
  * Created by madhukurapati on 3/17/18.
  */
 
-public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallback {
+public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallback, View.OnClickListener {
     private static final String TAG = "PostViewHolder";
     public static final String EXTRA_RIDE_KEY = "ride_key";
     private String mRideKey;
@@ -47,8 +65,16 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     private Double originLat, originLong, destinationLat, destinationLong;
     private Gson gson;
     private List<LatLng> listLatLong;
+    private TextView dateView;
+    private TextView timeView;
+    private TextView distanceView;
+    private TextView durationView;
     Polyline polyline;
     PolylineOptions options;
+    private EditText mCommentField;
+    private Button mCommentButton;
+    private RecyclerView mCommentsRecycler;
+    private CommentAdapter mAdapter;
 
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
 
@@ -66,6 +92,11 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
 
+        dateView = findViewById(R.id.date_tv);
+        timeView = findViewById(R.id.time_tv);
+        distanceView = findViewById(R.id.distace_tv);
+        durationView = findViewById(R.id.duration_tv);
+
         rideRequestObject = ((ObjectWrapperForBinder) getIntent().getExtras().getBinder("rideObject")).getData();
 
         if (rideRequestObject == null) {
@@ -77,13 +108,13 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
             throw new IllegalArgumentException("Must pass EXTRA_RIDE_KEY");
         }
 
-        typeOfReference = rideRequestObject.getTypeOfRequest();
+        /*typeOfReference = rideRequestObject.getTypeOfRequest();
         if (typeOfReference.equals("1")) {
             mRideReference = FirebaseDatabase.getInstance().getReference()
                     .child("rides-requested").child(mRideKey);
         } else {
             mRideReference = FirebaseDatabase.getInstance().getReference().child("rides-provided").child(mRideKey);
-        }
+        }*/
 
         mCommentsReference = FirebaseDatabase.getInstance().getReference()
                 .child("rides-comments").child(mRideKey);
@@ -98,6 +129,32 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         originLong = Double.parseDouble(originLongS);
         destinationLat = Double.parseDouble(destinationLatS);
         destinationLong = Double.parseDouble(destinationLongS);
+
+        dateView.setText(rideRequestObject.dateOfRide);
+        timeView.setText(rideRequestObject.timeOfRide);
+
+        mCommentField = findViewById(R.id.ride_field_comment_text);
+        mCommentButton = findViewById(R.id.ride_button_comment);
+        mCommentsRecycler = findViewById(R.id.recycler_comments);
+        mCommentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: ");
+                if (v != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+                Log.d(TAG, "onClick: after");
+                postComment();
+            }
+
+        });
+        //mCommentButton.setOnClickListener(this);
+        mCommentsRecycler.setLayoutManager(new LinearLayoutManager(this));
+
+        // Listen for comments
+        mAdapter = new CommentAdapter(this, mCommentsReference);
+        mCommentsRecycler.setAdapter(mAdapter);
     }
 
 
@@ -122,6 +179,59 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         mapView.onSaveInstanceState(mapViewBundle);
     }
 
+    private void postComment() {
+        final String uid = getUid();
+        FirebaseDatabase.getInstance().getReference().child("users").child(uid)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        // Get user information
+                        User user = dataSnapshot.getValue(User.class);
+                        String authorName = user.username;
+
+                        // Create new comment object
+                        String commentText = mCommentField.getText().toString();
+                        Comment comment = new Comment(uid, authorName, commentText);
+
+                        // Push the comment, it will appear in the list
+                        mCommentsReference.push().setValue(comment);
+
+                        // Clear the field
+                        mCommentField.setText(null);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+    }
+
+    @Override
+    public void onClick(View v) {
+        Log.d(TAG, "onClick: ");
+        int i = v.getId();
+        if (i == R.id.ride_button_comment) {
+            View view = this.getCurrentFocus();
+            if (view != null) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+            Log.d(TAG, "onClick: after");
+            postComment();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mapView.onStart();
+        //Hide keyboard on start
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -135,15 +245,10 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        mapView.onStart();
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
         mapView.onStop();
+        mAdapter.cleanupListener();
     }
 
     @Override
@@ -156,8 +261,18 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         String positions = rideRequestObject.getmDirections();
         DirectionObject directionObject = gson.fromJson(positions, DirectionObject.class);
         List<RouteObject> routeObject = directionObject.getRoutes();
+        populateDistanceAndTimeFields(directionObject);
         GetDirectionsFromPositions getDirectionsFromPositions = new GetDirectionsFromPositions(routeObject);
         getDirectionsFromPositions.execute();
+    }
+
+    private void populateDistanceAndTimeFields(DirectionObject directionObject) {
+        List<LegsObject> legsObjects = directionObject.getRoutes().get(0).getLegs();
+        Distance distance = legsObjects.get(0).getDistance();
+        Duration duration = legsObjects.get(0).getDuration();
+        distanceView.setText(distance.getText());
+        String avgTimeText = "Travel duration: " + duration.getText();
+        durationView.setText(avgTimeText);
     }
 
     private void callAddMarkers(List<LatLng> listLatLong) {

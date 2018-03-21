@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_alignParentBottom="true"
-            app:tabIndicatorColor="@android:color/black"
+            app:tabIndicatorColor= "@color/colorTabLayoutBackground"
             app:tabTextAppearance="@android:style/TextAppearance.Widget.TabWidget"
             android:background="@drawable/tab_background"
             style="@style/MyCustomTabLayout"/>
@@ -29,7 +29,6 @@
             android:layout_alignParentTop="true"
             android:layout_above="@id/tab_layout"
             android:background="@android:color/white" />
-        <!-- Center and Bottom Aligned Button Acting as Raised Center Tab Item -->
     </RelativeLayout>
 
     <!--The navigation drawer-->

@@ -22,7 +22,7 @@ public class Helper {
     }
 
     public static String getStaticImageApi(double originLat, double originLong, double destinationLat, double destinationLong, String polyEncode) {
-        String s = Helper.STATIC_IMAGE_API + "&path=color:0x000000|weight:10|enc:" + polyEncode + "&maptype=roadmap&weight:3|color:blue|geodesic:true|" + /*"&markers=color:red|label:O|" + originLat + "," + originLong +*/ "&&markers=color:red|label:D|" + destinationLat + "," + destinationLong + "|" + "&key=" + API_KEY;
+        String s = Helper.STATIC_IMAGE_API + "&path=color:0x000000|weight:5|enc:" + polyEncode + "&maptype=roadmap&weight:3|color:blue|geodesic:true|" + "&markers=color:blue|label:O|" + originLat + "," + originLong + "&&markers=color:red|label:D|" + destinationLat + "," + destinationLong + "|" + "&key=" + API_KEY;
         return s;
 
 

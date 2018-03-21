@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="hookedtech.tossdown.UserProfileActivity">
     <item
-        android:id="@+id/action_search"
+        android:id="@+id/action_add"
         android:title=" "
-        android:icon="@drawable/ic_add_black_48dp"
+        android:icon="@drawable/ic_add_circle_outline_black_48dp"
         android:orderInCategory="100"
         app:showAsAction="always" />
 </menu>
