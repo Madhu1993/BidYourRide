@@ -26,7 +26,7 @@ import bidyourride.kurama.com.bidyourride.viewholder.CommentViewHolder;
 
 public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
-    private static final String TAG = "CommentAdapter";
+    private static final String TAG = "RideDetailsActivity";
     private Context mContext;
     private DatabaseReference mDatabaseReference;
     private ChildEventListener mChildEventListener;
@@ -149,7 +149,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
     public void cleanupListener() {
         if (mChildEventListener != null) {
-            mDatabaseReference.removeEventListener(mChildEventListener);
+            if(mDatabaseReference != null) {
+                mDatabaseReference.removeEventListener(mChildEventListener);
+            }
         }
     }
 

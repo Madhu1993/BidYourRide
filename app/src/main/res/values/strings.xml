@@ -2,7 +2,7 @@
     <string name="app_name">Bid Your Ride</string>
     <string name="facebook_app_id">519123011821610</string>
     <string name="skip_for_now">Skip For Now</string>
-    <string name="share">Share</string>
+    <string name="share">Share this Ride</string>
     <string name="logout">Logout</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -21,7 +21,6 @@
     <string name="facebook_provider_id">facebook_provider_id</string>
     <string name="confirm_logout">Are you sure you want to log out?</string>
     <string name="hello">Hello All Rides Are Here</string>
-    <!--<string name="spinner_title">Select Category</string>-->
     <string name="category">Category:</string>
     <string name="Select">Select:</string>
     <string name="home">Home</string>
@@ -42,5 +41,12 @@
     <string name="post">Post</string>
     <string name="write_a_comment">Write a comment...</string>
     <string name="postComment">Send</string>
+    <string name="bid">Bid</string>
+    <string name="initial_price">$ 0.0</string>
+    <string name="bid_author_title">User</string>
+    <string name="bid_amount_title">$$</string>
+    <string name="bid_time_title">Time</string>
+    <string name="uber_and_lyft_prices">Uber and Lyft prices</string>
+    <string name="top_3_bids">Top Five Bids</string>
 
 </resources>

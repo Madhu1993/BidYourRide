@@ -1,9 +1,6 @@
 package bidyourride.kurama.com.bidyourride.helper;
 
-import android.graphics.Color;
-import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -12,18 +9,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.maps.android.PolyUtil;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import bidyourride.kurama.com.bidyourride.model.LegsObject;
-import bidyourride.kurama.com.bidyourride.model.PolylineObject;
-import bidyourride.kurama.com.bidyourride.model.RouteObject;
-import bidyourride.kurama.com.bidyourride.model.StepsObject;
-
-import static com.facebook.FacebookSdk.getApplicationContext;
 
 /**
  * Created by madhukurapati on 3/13/18.
@@ -43,7 +30,7 @@ public class GoogleMapHelper {
                 .title("D"));
     }
 
-    public static void drawRouteOnMap(Polyline polyline,GoogleMap map, List<LatLng> positions) {
+    public static void drawRouteOnMap(Polyline polyline, GoogleMap map, List<LatLng> positions) {
         if (!getCameraPositionAndDrawMap(polyline, map)) {
             CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(positions.get(1).latitude, positions.get(1).longitude))
@@ -92,7 +79,7 @@ public class GoogleMapHelper {
         return isCameraPositionSet;
     }
 
-    public static class GetDirectionsFromPositions extends AsyncTask<Void, Void, List<LatLng>> {
+    /*public static class GetDirectionsFromPositions extends AsyncTask<Void, Void, List<LatLng>> {
         List<LatLng> directionList;
         List<RouteObject> routeObjectList;
 
@@ -161,8 +148,8 @@ public class GoogleMapHelper {
         @Override
         protected void onPostExecute(List<LatLng> latLngs) {
 
-        }
-    }
+        }*//*
+    }*/
 
     /* @Override
     public void onMapReady(GoogleMap googleMap) {

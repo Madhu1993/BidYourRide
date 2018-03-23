@@ -161,6 +161,10 @@ public abstract class RidesListFragment extends Fragment {
                 return super.onFailedToRecycleView(holder);
             }
 
+            @Override
+            public RideRequest getItem(int position) {
+                return super.getItem(position);
+            }
 
             @Override
             public RidesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

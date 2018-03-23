@@ -474,8 +474,9 @@ public class AddRideActivity extends BaseActivity implements AdapterView.OnItemS
                                         "Error: could not fetch user.",
                                         Toast.LENGTH_SHORT).show();
                             } else {
-                                String title = concatenateOriginAndDest(originCityName, destinationCityName);
+                                String title =" ";
                                 try {
+                                    title = concatenateOriginAndDest(originCityName, destinationCityName);
                                     String capTitle = AddRideActivityHelper.capitalize(title);
                                     writeNewRide(userId, user.username, capTitle, originFullAddress, destinationFullAddress, typeOfRequest, date, time, originCityName, destinationCityName, originLatString, originLongString, destinationLatString, destinationLongString, directionObjectJson, encodedMapString);
                                 } catch (Exception e) {
