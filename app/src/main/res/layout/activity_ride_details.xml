@@ -53,18 +53,25 @@
                         tools:ignore="ButtonStyle" />
                 </LinearLayout>
 
-                <com.diegodobelo.expandingview.ExpandingList
-                    android:id="@+id/expanding_list_main"
+                <com.uber.sdk.android.rides.RideRequestButton
+                    android:id="@+id/uber_button"
+                    uber:ub__style="black"
                     android:layout_width="match_parent"
-                    android:layout_marginStart="0dp"
                     android:layout_below="@+id/comment_share_ll"
                     android:layout_height="wrap_content" />
+
+                <com.lyft.lyftbutton.LyftButton
+                    android:id="@+id/lyft_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/uber_button"
+                    lyft:lyftStyle="lyftLauncher" />
 
                 <RelativeLayout
                     android:id="@+id/origin_ll"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/expanding_list_main"
+                    android:layout_below="@id/lyft_button"
                     android:paddingBottom="5dp"
                     android:paddingTop="2dp">
 
@@ -317,69 +324,12 @@
                         android:layout_weight="0.2" />
                 </LinearLayout>-->
 
-                <!--<View
-                    android:id="@+id/line1"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@+id/bid_ll"
-                    android:background="@android:color/black" />
-
-                <LinearLayout
-                    android:id="@+id/title_ll"
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp"
-                    android:layout_below="@id/line1"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/author_title"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.4"
-                        android:textColor="#000000"
-                        tools:text="Name" />
-
-                    <TextView
-                        android:id="@+id/bid_value_title"
-                        style="@style/TextAppearance.AppCompat.Small"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.2"
-                        android:gravity="start"
-                        android:textColor="#000000"
-                        tools:text="Bidding Amount ($)" />
-
-                    <TextView
-                        android:id="@+id/time_stamp_title"
-                        style="@style/TextAppearance.AppCompat.Small"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="0.4"
-                        android:gravity="start"
-                        android:textColor="#000000"
-                        tools:text="00/00/0000 ss:ss:ss" />
-                </LinearLayout>
-
-                <View
-                    android:id="@+id/line2"
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_below="@id/title_ll"
-                    android:background="@android:color/black" />-->
-
-                <com.diegodobelo.expandingview.ExpandingList
-                    android:id="@+id/expanding_list_recylcer_bid_value"
-                    android:layout_width="match_parent"
-                    android:layout_marginStart="0dp"
-                    android:layout_below="@+id/bid_ll"
-                    android:layout_height="match_parent" />
-
-                <!--<android.support.v7.widget.RecyclerView
+                <android.support.v7.widget.RecyclerView
                     android:id="@+id/recylcer_bid_value"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_below="@id/line2"
-                    tools:listitem="@layout/item_bid_value" />-->
+                    android:layout_below="@id/bid_ll"
+                    tools:listitem="@layout/item_bid_value" />
             </RelativeLayout>
 
         </android.support.v4.widget.NestedScrollView>

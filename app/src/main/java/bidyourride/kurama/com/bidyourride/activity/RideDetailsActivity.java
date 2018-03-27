@@ -1,12 +1,17 @@
 package bidyourride.kurama.com.bidyourride.activity;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,11 +20,10 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.diegodobelo.expandingview.ExpandingItem;
-import com.diegodobelo.expandingview.ExpandingList;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -40,7 +44,6 @@ import com.lyft.lyftbutton.LyftButton;
 import com.lyft.lyftbutton.RideParams;
 import com.lyft.lyftbutton.RideTypeEnum;
 import com.lyft.networking.ApiConfig;
-import com.uber.sdk.android.core.UberSdk;
 import com.uber.sdk.android.rides.RideParameters;
 import com.uber.sdk.android.rides.RideRequestButton;
 import com.uber.sdk.android.rides.RideRequestButtonCallback;
@@ -66,6 +69,7 @@ import bidyourride.kurama.com.bidyourride.model.RideRequest;
 import bidyourride.kurama.com.bidyourride.model.RouteObject;
 import bidyourride.kurama.com.bidyourride.model.StepsObject;
 import bidyourride.kurama.com.bidyourride.model.User;
+import bidyourride.kurama.com.bidyourride.rest.Helper;
 import bidyourride.kurama.com.bidyourride.view.CircleImageView;
 import bidyourride.kurama.com.bidyourride.viewholder.RideRequestBidViewHolder;
 
@@ -76,10 +80,6 @@ import bidyourride.kurama.com.bidyourride.viewholder.RideRequestBidViewHolder;
 public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallback, View.OnClickListener, View.OnTouchListener {
     private static final String TAG = "RideDetailsActivity";
     public static final String EXTRA_RIDE_KEY = "ride_key";
-    private static final String UBER_CLIENT_ID = "uL0KuF3x2SmbSwjUuFHeHHs0R2oPBL4J";
-    private static final String UBER_SERVER_TOKEN = "-OB_NAjPpMEhKtGfTZrFQaRQYlPgJNCPZseSll4a";
-    private static final String LYFT_CLIENT_ID = "QctvgJmtka9e";
-    private static final String LYFT_SERVER_TOKEN = "S+ARfeuLjNcoinNBML28M56YbX13Q43uCXJoS9QKpsGTlMyG10l6/C3YLNEj+Fgf7eEU++Zx4yZQ7YrZnDrig101J8sIe2RUq232EDpgk/y0JW0YpE6TRYc=";
     private String mRideKey;
     private String typeOfReference;
     FirebaseDatabase firebaseDatabase;
@@ -89,7 +89,6 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     RideRequest rideRequestObject;
     private Double originLat, originLong, destinationLat, destinationLong;
     private Gson gson;
-    //private List<LatLng> listLatLong;
     private TextView dateView;
     private TextView timeView;
     private TextView distanceView;
@@ -108,18 +107,17 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     private boolean mAutoDecrement = false;
     private Handler repeatUpdateHandler = new Handler();
     public double mValue;
-    public double minValueAllowed;
     CommentFragment commentFragment;
-    private ChildEventListener mChildEventListener;
     private RideRequestBid mBidAdapter;
+    private LinearLayout bidLayout;
+    private String uid;
+    private String originLatS, originLongS, destinationLatS, destinationLongS;
 
     public static final int REP_DELAY = 50;
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
     private RecyclerView mBidValueRecycler;
-    ExpandingList expandingList, expandingListRecyclerBidValues;
     LyftButton lyftButton;
     RideRequestButton uberRideRequestButton;
-    ExpandingItem priceItem, bidValueItem;
 
 
     @Override
@@ -137,8 +135,30 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         mapView = findViewById(R.id.activity_map);
         mapView.onCreate(mapViewBundle);
         mapView.getMapAsync(this);
+        mapView.setClickable(false);
 
         firebaseDatabase = FirebaseDatabase.getInstance();
+
+        dateView = findViewById(R.id.date_tv);
+        timeView = findViewById(R.id.time_tv);
+        distanceView = findViewById(R.id.distace_tv);
+        durationView = findViewById(R.id.duration_tv);
+        priceView = findViewById(R.id.price_tv);
+        incButton = findViewById(R.id.inc_button);
+        decButton = findViewById(R.id.dec_button);
+        mCommentButton = findViewById(R.id.comment_title_tv);
+        bidButton = findViewById(R.id.bid_button);
+        bidLayout = findViewById(R.id.bid_ll);
+
+        uberRideRequestButton = findViewById(R.id.uber_button);
+
+
+        mBidValueRecycler = findViewById(R.id.recylcer_bid_value);
+        mBidValueRecycler.setLayoutManager(new LinearLayoutManager(this));
+        if (mValue == 0) {
+            decButton.setVisibility(View.GONE);
+        }
+
 
         rideRequestObject = ((ObjectWrapperForBinder) getIntent().getExtras().getBinder("rideObject")).getData();
 
@@ -154,69 +174,17 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         mBidValueReference = firebaseDatabase.getReference()
                 .child("rides-requestBid").child(mRideKey);
 
-        dateView = findViewById(R.id.date_tv);
-        timeView = findViewById(R.id.time_tv);
-        distanceView = findViewById(R.id.distace_tv);
-        durationView = findViewById(R.id.duration_tv);
-        priceView = findViewById(R.id.price_tv);
-        incButton = findViewById(R.id.inc_button);
-        decButton = findViewById(R.id.dec_button);
-        mCommentButton = findViewById(R.id.comment_title_tv);
-
-        bidButton = findViewById(R.id.bid_button);
-        expandingList = findViewById(R.id.expanding_list_main);
-        expandingListRecyclerBidValues = findViewById(R.id.expanding_list_recylcer_bid_value);
-        priceItem = expandingList.createNewItem(R.layout.expanding_lyft_uber_layout);
-        priceItem.createSubItems(1);
-        setPriceValuesExpandImage();
-        priceItem.setStateChangedListener(new ExpandingItem.OnItemStateChanged() {
-            @Override
-            public void itemCollapseStateChanged(boolean expanded) {
-                if (expanded) {
-                    setPriceValuesCollapseImage();
-                } else {
-                    setPriceValuesExpandImage();
-                }
-            }
-        });
-        View subPriceItemZero = priceItem.getSubItemView(0);
-        lyftButton = subPriceItemZero.findViewById(R.id.lyft_button);
-        uberRideRequestButton = subPriceItemZero.findViewById(R.id.uber_button);
-
-        bidValueItem = expandingListRecyclerBidValues.createNewItem(R.layout.expanding_top_bids_layout);
-        bidValueItem.createSubItems(1);
-        setBidValuesExpandImage();
-
-        bidValueItem.setStateChangedListener(new ExpandingItem.OnItemStateChanged() {
-            @Override
-            public void itemCollapseStateChanged(boolean expanded) {
-                if (expanded) {
-                    setBidValuesCollapseImage();
-                } else {
-                    setBidValuesExpandImage();
-                }
-            }
-        });
-
-        View subBidValueItemZero = bidValueItem.getSubItemView(0);
-        mBidValueRecycler = subBidValueItemZero.findViewById(R.id.recylcer_bid_value);
-
-        if (mValue == 0) {
-            decButton.setVisibility(View.GONE);
-        }
-
+        uid = getUid();
         gson = new Gson();
-        String originLatS = rideRequestObject.getOriginLat();
-        String originLongS = rideRequestObject.getOriginLong();
-        String destinationLatS = rideRequestObject.getDestinationLat();
-        String destinationLongS = rideRequestObject.getDestinationLong();
+        originLatS = rideRequestObject.getOriginLat();
+        originLongS = rideRequestObject.getOriginLong();
+        destinationLatS = rideRequestObject.getDestinationLat();
+        destinationLongS = rideRequestObject.getDestinationLong();
 
         originLat = Double.parseDouble(originLatS);
         originLong = Double.parseDouble(originLongS);
         destinationLat = Double.parseDouble(destinationLatS);
         destinationLong = Double.parseDouble(destinationLongS);
-        handleUberButtonAndGetDetails();
-        handleLyftButtonAndGetDeails();
 
         dateView.setText(rideRequestObject.dateOfRide);
         timeView.setText(rideRequestObject.timeOfRide);
@@ -284,31 +252,18 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         decButton.setOnClickListener(this);
         mCommentButton.setOnClickListener(this);
         bidButton.setOnClickListener(this);
-    }
-
-    private void setBidValuesExpandImage() {
-        bidValueItem.setIndicatorIconRes(R.drawable.ic_arrow_drop_down_black_48dp);
-    }
-
-    private void setBidValuesCollapseImage() {
-        bidValueItem.setIndicatorIconRes(R.drawable.ic_arrow_drop_up_black_48dp);
-    }
-
-    private void setPriceValuesExpandImage() {
-        priceItem.setIndicatorIconRes(R.drawable.ic_arrow_drop_down_black_48dp);
-    }
-
-    private void setPriceValuesCollapseImage() {
-        priceItem.setIndicatorIconRes(R.drawable.ic_arrow_drop_up_black_48dp);
+        handleUberButtonAndGetDetails();
+        handleLyftButtonAndGetDeails();
+        mapView.setOnClickListener(this);
     }
 
     private void handleLyftButtonAndGetDeails() {
         ApiConfig apiConfig = new ApiConfig.Builder()
-                .setClientId(LYFT_CLIENT_ID)
-                .setClientToken(LYFT_SERVER_TOKEN)
+                .setClientId("BRXFOlj9_v4-")
+                .setClientToken("ogR6DYjg4vFYXbk8dgyq5l5E3DEfbx049lEPK38jlM0ntqOqb5tu2VVgdroMnQKkbJnPvkqc/aLfr5BOYnKF/Ql4ChVNcL5AHVNZB/9N7Hc9tgctOEqLXr4=")
                 .build();
 
-        /*lyftButton = findViewById(R.id.lyft_button);*/
+        lyftButton = findViewById(R.id.lyft_button);
         lyftButton.setApiConfig(apiConfig);
 
         RideParams.Builder rideParamsBuilder = new RideParams.Builder()
@@ -322,19 +277,16 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
 
     private void handleUberButtonAndGetDetails() {
         RideParameters rideParams = new RideParameters.Builder()
-                .setDropoffLocation(
-                        destinationLat, destinationLong, rideRequestObject.getDestinationCityName(), rideRequestObject.getDestination())
                 .setPickupLocation(originLat, originLong, rideRequestObject.getOriginCityName(), rideRequestObject.getOrigin())
+                .setDropoffLocation(destinationLat, destinationLong, rideRequestObject.getDestinationCityName(), rideRequestObject.getDestination())
                 .build();
 
         SessionConfiguration config = new SessionConfiguration.Builder()
-                .setClientId(UBER_CLIENT_ID)
-                .setServerToken(UBER_SERVER_TOKEN)
-                .setEnvironment(SessionConfiguration.Environment.SANDBOX)
+                .setClientId("SCrKNGu3BUwal-JZeaZTQCKZtfPmzHKu")
+                .setServerToken("uH6d2Zq27PHF_4ZALkTNI7eHm5xhG-qOX3jir8dW")
                 .build();
-
-        UberSdk.initialize(config);
         ServerTokenSession session = new ServerTokenSession(config);
+
         RideRequestButtonCallback callback = new RideRequestButtonCallback() {
 
             @Override
@@ -352,6 +304,7 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
 
             }
         };
+
         uberRideRequestButton.setRideParameters(rideParams);
         uberRideRequestButton.setSession(session);
         uberRideRequestButton.setCallback(callback);
@@ -363,8 +316,15 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         super.onStart();
         mapView.onStart();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        populateMaXBidAmountViewAndListenForChildValueChanges();
         //getMaxBiddedValueSoFar();
+    }
+
+    private void hideBidButtonForRequesterAndTopBidsForOthers() {
+        if (rideRequestObject.getUid().equals(uid)) {
+            bidLayout.setVisibility(View.GONE);
+        } else {
+            mBidValueRecycler.setVisibility(View.GONE);
+        }
     }
 
     /*private void getMaxBiddedValueSoFar() {
@@ -387,10 +347,56 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     }*/
 
     private void populateMaXBidAmountViewAndListenForChildValueChanges() {
-        // Listen for bidValues
 
         mBidAdapter = new RideRequestBid(this, mBidValueReference);
         mBidValueRecycler.setAdapter(mBidAdapter);
+
+        ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
+                final int position = viewHolder.getAdapterPosition(); //get position which is swipe
+
+                if (direction == ItemTouchHelper.LEFT) {    //if swipe left
+
+                    AlertDialog.Builder builder = new AlertDialog.Builder(RideDetailsActivity.this); //alert for confirm to delete
+                    builder.setMessage("Are you sure to remove this from the list?");    //set message
+
+                    builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() { //when click on DELETE
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mBidAdapter.notifyItemRemoved(position);    //item removed from recylcerview
+                            return;
+                        }
+                    }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mBidAdapter.notifyItemRemoved(position + 1);
+                            mBidAdapter.notifyItemRangeChanged(position, mBidAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
+                            return;
+                        }
+                    }).show();  //show alert dialog
+                }
+
+                if (direction == ItemTouchHelper.RIGHT) {
+                    Toast.makeText(RideDetailsActivity.this, "I swiped Right", Toast.LENGTH_SHORT).show();
+                }
+            }
+        };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleCallback);
+        itemTouchHelper.attachToRecyclerView(mBidValueRecycler);
+    }
+
+    private void launchMapActivity(){
+        if (rideRequestObject == null) {
+            return;
+        }
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(Helper.getMapDirectionWithinGoogleMapUri(originLatS, originLongS, destinationLatS, destinationLongS)));
+        startActivity(intent);
     }
 
     private class RideRequestBid extends RecyclerView.Adapter<RideRequestBidViewHolder> {
@@ -522,7 +528,6 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
 
     }
 
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -559,14 +564,16 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                 intent.putExtra("mRideKey", mRideKey);
                 intent.putExtra("uid", getUid());
                 startActivity(intent);
+                return;
             case R.id.bid_button:
                 showBidValueAndSaveOnFirebase();
-
+                return;
+            case R.id.activity_map:
+                launchMapActivity();
         }
     }
 
     private void showBidValueAndSaveOnFirebase() {
-        final String uid = getUid();
         firebaseDatabase.getReference().child("users").child(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -600,6 +607,8 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     public void onResume() {
         super.onResume();
         mapView.onStart();
+        hideBidButtonForRequesterAndTopBidsForOthers();
+        populateMaXBidAmountViewAndListenForChildValueChanges();
     }
 
     @Override
@@ -657,6 +666,9 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         options = new PolylineOptions().width(5).color(Color.BLUE).geodesic(true);
         options.addAll(listLatLong);
         polyline = map.addPolyline(options);
+        polyline.setColor(Color.BLACK);
+        polyline.setWidth(6);
+        polyline.setGeodesic(true);
         if (polyline.getPoints() != null) {
             GoogleMapHelper.addMarkersOfOriginDestination(map, originLat, originLong, destinationLat, destinationLong);
             GoogleMapHelper.drawRouteOnMap(polyline, map, listLatLong);
