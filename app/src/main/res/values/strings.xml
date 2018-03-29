@@ -48,5 +48,7 @@
     <string name="bid_time_title">Time</string>
     <string name="uber_and_lyft_prices">Uber and Lyft prices</string>
     <string name="top_3_bids">Top Five Bids</string>
+    <string name="top_rides">Top Bids</string>
+    <string name="try_again">Try Again</string>
 
 </resources>

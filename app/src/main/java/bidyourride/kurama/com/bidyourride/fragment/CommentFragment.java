@@ -28,6 +28,7 @@ public class CommentFragment extends Fragment {
     private CommentAdapter mAdapter;
     private DatabaseReference mCommentsReference;
     String mRideKey;
+    String userUid;
 
     @Nullable
     @Override
@@ -40,6 +41,7 @@ public class CommentFragment extends Fragment {
         Bundle bundle = this.getArguments();
         if (bundle != null) {
             mRideKey = bundle.getString("mRideKey");
+            userUid = bundle.getString("uid");
         }
         return rootView;
     }
@@ -52,7 +54,7 @@ public class CommentFragment extends Fragment {
                 .child("rides-comments").child(mRideKey);
 
         // Listen for comments
-        mAdapter = new CommentAdapter(getActivity(), mCommentsReference);
+        mAdapter = new CommentAdapter(getActivity(), mCommentsReference, userUid);
         mCommentsRecycler.setAdapter(mAdapter);
     }
 }

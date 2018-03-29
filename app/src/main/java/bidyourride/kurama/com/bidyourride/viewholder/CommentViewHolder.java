@@ -2,6 +2,7 @@ package bidyourride.kurama.com.bidyourride.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import bidyourride.kurama.com.bidyourride.R;
@@ -14,11 +15,12 @@ public class CommentViewHolder extends RecyclerView.ViewHolder {
 
     public TextView authorView;
     public TextView bodyView;
+    public RelativeLayout relativeLayout;
 
     public CommentViewHolder(View itemView) {
         super(itemView);
-
-        authorView = (TextView) itemView.findViewById(R.id.comment_author);
-        bodyView = (TextView) itemView.findViewById(R.id.comment_body);
+        relativeLayout = itemView.findViewById(R.id.myRelativeLaout);
+        authorView = itemView.findViewById(R.id.comment_author);
+        bodyView = itemView.findViewById(R.id.comment_body);
     }
 }

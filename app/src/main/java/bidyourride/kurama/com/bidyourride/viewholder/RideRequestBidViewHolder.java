@@ -19,8 +19,9 @@ public class RideRequestBidViewHolder extends RecyclerView.ViewHolder {
     public RideRequestBidViewHolder(View itemView) {
         super(itemView);
 
-        authorView = (TextView) itemView.findViewById(R.id.bid_author);
-        bidValue = (TextView) itemView.findViewById(R.id.item_bid_value);
-        dateAndTime = (TextView) itemView.findViewById(R.id.time_stamp);
+        authorView = itemView.findViewById(R.id.bid_author);
+        bidValue = itemView.findViewById(R.id.item_bid_value);
+        dateAndTime = itemView.findViewById(R.id.time_stamp);
     }
+
 }

@@ -3,6 +3,7 @@ package bidyourride.kurama.com.bidyourride.adapter;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import bidyourride.kurama.com.bidyourride.viewholder.CommentViewHolder;
 public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
     private static final String TAG = "RideDetailsActivity";
+    private String userUID;
     private Context mContext;
     private DatabaseReference mDatabaseReference;
     private ChildEventListener mChildEventListener;
@@ -34,9 +36,10 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
     private List<String> mCommentIds = new ArrayList<>();
     private List<Comment> mComments = new ArrayList<>();
 
-    public CommentAdapter(final Context context, DatabaseReference ref) {
+    public CommentAdapter(final Context context, DatabaseReference ref, String uid) {
         mContext = context;
         mDatabaseReference = ref;
+        userUID = uid;
 
         // Create child event listener
         // [START child_event_listener_recycler]
@@ -140,6 +143,9 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
         Comment comment = mComments.get(position);
         holder.authorView.setText(comment.author);
         holder.bodyView.setText(comment.text);
+
+        boolean isMe = comment.getUid().equals(userUID);
+        setChatRowAppearance(isMe, holder);
     }
 
     @Override
@@ -149,9 +155,17 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentViewHolder> {
 
     public void cleanupListener() {
         if (mChildEventListener != null) {
-            if(mDatabaseReference != null) {
+            if (mDatabaseReference != null) {
                 mDatabaseReference.removeEventListener(mChildEventListener);
             }
+        }
+    }
+
+    private void setChatRowAppearance(Boolean isItMe, CommentViewHolder holder) {
+        if (isItMe) {
+            holder.relativeLayout.setGravity(Gravity.START);
+        } else {
+            holder.relativeLayout.setGravity(Gravity.END);
         }
     }
 

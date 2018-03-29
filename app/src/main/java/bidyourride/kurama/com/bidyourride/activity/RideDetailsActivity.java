@@ -98,10 +98,12 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     private Button mCommentButton;
     private TextView originLocation;
     private TextView destinationLocation;
+    private TextView topRidesTV;
+    private TextView userUpdateBidInfoAfterPosting;
     private TextView priceView;
     private ImageButton decButton;
     private ImageButton incButton;
-    private Button bidButton;
+    private Button bidButton, tryAgainButton;
     private CircleImageView originImage, destinationImage, dateImage, timeImage, distanceImage, durationImage;
     private boolean mAutoIncrement = false;
     private boolean mAutoDecrement = false;
@@ -112,6 +114,7 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
     private LinearLayout bidLayout;
     private String uid;
     private String originLatS, originLongS, destinationLatS, destinationLongS;
+    private Double minValueFromWholeBidding = 1000.0;
 
     public static final int REP_DELAY = 50;
     private static final String MAP_VIEW_BUNDLE_KEY = "MapViewBundleKey";
@@ -148,7 +151,10 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         decButton = findViewById(R.id.dec_button);
         mCommentButton = findViewById(R.id.comment_title_tv);
         bidButton = findViewById(R.id.bid_button);
+        tryAgainButton = findViewById(R.id.try_again_button);
         bidLayout = findViewById(R.id.bid_ll);
+        topRidesTV = findViewById(R.id.top_rides_text_view);
+        userUpdateBidInfoAfterPosting = findViewById(R.id.tv_update_bid_details);
 
         uberRideRequestButton = findViewById(R.id.uber_button);
 
@@ -254,6 +260,7 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         bidButton.setOnClickListener(this);
         handleUberButtonAndGetDetails();
         handleLyftButtonAndGetDeails();
+        tryAgainButton.setOnClickListener(this);
         mapView.setOnClickListener(this);
     }
 
@@ -316,40 +323,32 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         super.onStart();
         mapView.onStart();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
-        //getMaxBiddedValueSoFar();
     }
 
-    private void hideBidButtonForRequesterAndTopBidsForOthers() {
-        if (rideRequestObject.getUid().equals(uid)) {
-            bidLayout.setVisibility(View.GONE);
+    private void hideBidButtonForRequesterAndTopBidsForOthers(Boolean calledAfterClickingTryAgain) {
+        if (calledAfterClickingTryAgain) {
+            if (bidLayout.getVisibility() == View.GONE) {
+                bidLayout.setVisibility(View.VISIBLE);
+                tryAgainButton.setVisibility(View.GONE);
+            }
         } else {
-            mBidValueRecycler.setVisibility(View.GONE);
+            userUpdateBidInfoAfterPosting.setVisibility(View.GONE);
+            tryAgainButton.setVisibility(View.GONE);
+            if (rideRequestObject.getUid().equals(uid)) {
+                bidLayout.setVisibility(View.GONE);
+            } else {
+                mBidValueRecycler.setVisibility(View.GONE);
+                topRidesTV.setVisibility(View.GONE);
+            }
         }
-    }
 
-    /*private void getMaxBiddedValueSoFar() {
-        Query minValueToSetForPriceBidView = mBidValueReference.orderByChild("bidValue").limitToLast(1);
-        minValueToSetForPriceBidView.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot){
-                for (DataSnapshot childSnapshot: dataSnapshot.getChildren()) {
-                    RequestBid requestBid = childSnapshot.getValue(RequestBid.class);
-                    if (requestBid != null) {
-                        minValueAllowed = requestBid.bidValue;
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                throw databaseError.toException(); // don't swallow errors
-            }
-        });
-    }*/
+    }
 
     private void populateMaXBidAmountViewAndListenForChildValueChanges() {
 
         mBidAdapter = new RideRequestBid(this, mBidValueReference);
         mBidValueRecycler.setAdapter(mBidAdapter);
+
 
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
@@ -358,28 +357,49 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
             }
 
             @Override
-            public void onSwiped(final RecyclerView.ViewHolder viewHolder, int direction) {
-                final int position = viewHolder.getAdapterPosition(); //get position which is swipe
+            public void onSwiped(final RecyclerView.ViewHolder RideRequestBidViewHolder, int direction) {
+                final int position = RideRequestBidViewHolder.getAdapterPosition();
+                RecyclerView.ViewHolder holder = mBidValueRecycler.findViewHolderForAdapterPosition(position);
+                final TextView authorName = holder.itemView.findViewById(R.id.bid_author);
+                final TextView bidAmount = holder.itemView.findViewById(R.id.item_bid_value);
+                final Double bidValue = Double.parseDouble((bidAmount.getText().toString()).replace("$ ", ""));
 
-                if (direction == ItemTouchHelper.LEFT) {    //if swipe left
+                if (direction == ItemTouchHelper.LEFT) {
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(RideDetailsActivity.this); //alert for confirm to delete
-                    builder.setMessage("Are you sure to remove this from the list?");    //set message
+                    AlertDialog.Builder builder = new AlertDialog.Builder(RideDetailsActivity.this);
+                    builder.setMessage("Are you sure to remove this from the list?");
 
-                    builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() { //when click on DELETE
+                    builder.setPositiveButton("REMOVE", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            mBidAdapter.notifyItemRemoved(position);    //item removed from recylcerview
-                            return;
+                            mBidValueReference.orderByChild("bidValue").equalTo(bidValue).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot childSnapshot : dataSnapshot.getChildren()) {
+                                        String authorFound = childSnapshot.child("author").getValue().toString();
+                                        if (authorFound.equals(authorName.getText().toString())) {
+                                            String individualKey = childSnapshot.getKey();
+                                            mBidValueReference.child(individualKey).removeValue();
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+
+                            mBidAdapter.notifyItemRemoved(position);
                         }
-                    }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {  //not removing items if cancel is done
+                    }).setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             mBidAdapter.notifyItemRemoved(position + 1);
-                            mBidAdapter.notifyItemRangeChanged(position, mBidAdapter.getItemCount());   //notifies the RecyclerView Adapter that positions of element in adapter has been changed from position(removed element index to end of list), please update it.
-                            return;
+                            mBidAdapter.notifyItemRangeChanged(position, mBidAdapter.getItemCount());
                         }
-                    }).show();  //show alert dialog
+                    }).show();
                 }
 
                 if (direction == ItemTouchHelper.RIGHT) {
@@ -391,11 +411,12 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
         itemTouchHelper.attachToRecyclerView(mBidValueRecycler);
     }
 
-    private void launchMapActivity(){
+    private void launchMapActivity() {
         if (rideRequestObject == null) {
             return;
         }
         Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(Helper.getMapDirectionWithinGoogleMapUri(originLatS, originLongS, destinationLatS, destinationLongS)));
+        intent.setPackage("com.google.android.apps.maps");
         startActivity(intent);
     }
 
@@ -422,7 +443,8 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                     Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
                     // A new comment has been added, add it to the displayed list
                     RequestBid requestBid = dataSnapshot.getValue(RequestBid.class);
-
+                    checkIfCurrentAlreadyHaveABid(requestBid);
+                    setMinValueFromWholeBiddingValues(requestBid);
                     // [START_EXCLUDE]
                     // Update RecyclerView
                     mRequestBidIDs.add(dataSnapshot.getKey());
@@ -436,8 +458,8 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                 public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
                     Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
 
-                    // A comment has changed, use the key to determine if we are displaying this
-                    // comment and if so displayed the changed comment.
+                    // A bid value has changed, use the key to determine if we are displaying this
+                    // comment and if so displayed the changed bid value.
                     RequestBid requestBid = dataSnapshot.getValue(RequestBid.class);
                     String requestKey = dataSnapshot.getKey();
 
@@ -458,8 +480,8 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
                     Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
 
-                    // A comment has changed, use the key to determine if we are displaying this
-                    // comment and if so remove it.
+                    // A bid value has changed, use the key to determine if we are displaying this
+                    // bid value and if so remove it.
                     String requestKey = dataSnapshot.getKey();
 
                     // [START_EXCLUDE]
@@ -528,6 +550,18 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
 
     }
 
+    private void setMinValueFromWholeBiddingValues(RequestBid requestBid) {
+        if (minValueFromWholeBidding > requestBid.bidValue) {
+            minValueFromWholeBidding = requestBid.bidValue;
+        }
+    }
+
+    private void checkIfCurrentAlreadyHaveABid(RequestBid eachBidObjectObtainedFromChildEventListener) {
+        if (eachBidObjectObtainedFromChildEventListener.getUid().equals(uid)) {
+            hideBidButtonForBidderAndShowHisPreviousBidAfterPosting(eachBidObjectObtainedFromChildEventListener.uid, eachBidObjectObtainedFromChildEventListener.bidValue);
+        }
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
@@ -566,14 +600,17 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                 startActivity(intent);
                 return;
             case R.id.bid_button:
-                showBidValueAndSaveOnFirebase();
+                showBidValueAndSaveOnFirebase(false);
+                return;
+            case R.id.try_again_button:
+                hideBidButtonForRequesterAndTopBidsForOthers(true);
                 return;
             case R.id.activity_map:
                 launchMapActivity();
         }
     }
 
-    private void showBidValueAndSaveOnFirebase() {
+    private void showBidValueAndSaveOnFirebase(Boolean tryingAgain) {
         firebaseDatabase.getReference().child("users").child(uid)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -592,6 +629,7 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
                         String setPrice = "$ " + requestBid.bidValue;
                         // Clear the field
                         priceView.setText(setPrice);
+                        //hideBidButtonForBidderAndShowHisPreviousBidAfterPosting(uid, requestBid.bidValue);
                     }
 
                     @Override
@@ -603,11 +641,27 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
 
     }
 
+    private void hideBidButtonForBidderAndShowHisPreviousBidAfterPosting(String uid, Double previousBidByYou) {
+        String s;
+        userUpdateBidInfoAfterPosting.setVisibility(View.VISIBLE);
+        bidLayout.setVisibility(View.GONE);
+        if (minValueFromWholeBidding < previousBidByYou) {
+            userUpdateBidInfoAfterPosting.setTextColor(Color.RED);
+            String concatString = "$" + String.valueOf(minValueFromWholeBidding);
+            s = "Sorry, you have been outbid for " + concatString;
+            tryAgainButton.setVisibility(View.VISIBLE);
+        } else {
+            String yourBidPriceString = "$" + String.valueOf(previousBidByYou);
+            s = "Your current bid for this ride: " + yourBidPriceString;
+        }
+        userUpdateBidInfoAfterPosting.setText(s);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         mapView.onStart();
-        hideBidButtonForRequesterAndTopBidsForOthers();
+        hideBidButtonForRequesterAndTopBidsForOthers(false);
         populateMaXBidAmountViewAndListenForChildValueChanges();
     }
 
@@ -797,4 +851,23 @@ public class RideDetailsActivity extends BaseActivity implements OnMapReadyCallb
             callAddMarkers(latLngs);
         }
     }
+
+    /*private void getMaxBiddedValueSoFar() {
+        Query minValueToSetForPriceBidView = mBidValueReference.orderByChild("bidValue").limitToLast(1);
+        minValueToSetForPriceBidView.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot){
+                for (DataSnapshot childSnapshot: dataSnapshot.getChildren()) {
+                    RequestBid requestBid = childSnapshot.getValue(RequestBid.class);
+                    if (requestBid != null) {
+                        minValueAllowed = requestBid.bidValue;
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                throw databaseError.toException(); // don't swallow errors
+            }
+        });
+    }*/
 }

@@ -73,6 +73,7 @@ public class CommentsActivity extends FragmentActivity {
         commentFragment = new CommentFragment();
         Bundle bundle = new Bundle();
         bundle.putString("mRideKey", mRideKey);
+        bundle.putString("uid", uid);
         commentFragment.setArguments(bundle);
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         ft.replace(R.id.comments_fragment, commentFragment);
