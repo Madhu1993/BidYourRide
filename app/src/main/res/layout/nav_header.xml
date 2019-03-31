@@ -18,7 +18,7 @@
         android:padding="@dimen/root_padding"
         android:gravity="start|center_vertical">
 
-    <bidyourride.kurama.com.bidyourride.view.CircleImageView
+    <bidyourride.kurama.com.eapaka.view.CircleImageView
         android:id="@+id/profile_logo"
         android:src="@drawable/com_facebook_profile_picture_blank_portrait"
         android:layout_width="@dimen/profile_image_large_diameter"

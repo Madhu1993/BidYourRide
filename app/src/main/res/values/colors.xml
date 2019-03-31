@@ -28,5 +28,17 @@
     <color name="sea">#20948B</color>
     <color name="submit">#739F3D</color>
     <color name="orange">#FF7300</color>
+    <color name="button">#F56D7B</color>
+    <color name="button_unclickable">#909497</color>
+    <color name="yellow1">#CDCD2F</color>
+    <color name="yellow2">#B9B930</color>
+    <color name="grey05">#A0A093</color>
+    <color name="orange4">#FF5733</color>
+    <color name="orange6">#CF3925</color>
+    <color name="orange5">#DC781F</color>
+    <color name="blue2">#1E84E3</color>
+    <color name="blue25">#6379E6</color>
+    <color name="person_count_button">#D5DBDB</color>
+    <color name="button_pressed">#9C9898</color>
 
 </resources>

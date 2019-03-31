@@ -28,7 +28,7 @@
             android:paddingBottom="10dp"
             android:paddingTop="10dp">
 
-            <bidyourride.kurama.com.bidyourride.view.CircleImageView
+            <bidyourride.kurama.com.eapaka.view.CircleImageView
                 android:id="@+id/origin_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
             android:paddingBottom="10dp"
             android:paddingTop="10dp">
 
-            <bidyourride.kurama.com.bidyourride.view.CircleImageView
+            <bidyourride.kurama.com.eapaka.view.CircleImageView
                 android:id="@+id/destination_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -151,14 +151,118 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/person_count_ll"
+            android:layout_width="fill_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="15dp"
+            android:layout_below="@id/time_picker_ll"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/person_count_empty1"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+                android:layout_weight="0.25" />
+
+            <ImageView
+                android:id="@+id/person_dec_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:background="@color/person_count_button"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_remove_black_48dp" />
+
+            <ImageView
+                android:id="@+id/person_image"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:paddingLeft="5dp"
+                android:layout_weight="0.1"
+                android:src="@drawable/ic_people_black_48dp"/>
+
+            <TextView
+                android:id="@+id/person_count"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.2"
+                android:gravity="center"
+                android:text="@string/count"
+                android:textColor="#000000" />
+
+            <ImageView
+                android:id="@+id/person_inc_button"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:scaleType="fitXY"
+                android:background="@color/person_count_button"
+                android:src="@drawable/ic_add_black_48dp" />
+
+            <View
+                android:id="@+id/person_count_empty2"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+                android:layout_weight="0.25" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/error_max_person_count"
+            android:layout_below="@id/person_count_ll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/orange"
+            android:layout_marginTop="4dp"
+            android:layout_centerHorizontal="true"
+            android:maxLines="1"
+            android:textSize="@dimen/ub__small_padding"
+            android:gravity="center"/>
+
+        <LinearLayout
+            android:id="@+id/cash_ll"
+            android:layout_below="@+id/error_max_person_count"
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:textAllCaps="true"
+                android:layout_weight="0.8"
+                android:textColor="#000000"
+                android:text="@string/cash_only"/>
+
+            <Switch
+                android:id="@+id/cash_switch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.2"
+                android:layout_marginEnd="10dp"
+                android:textOff="@string/no"
+                android:textOn="@string/yes"/>
+
+        </LinearLayout>
+
         <Button
             android:id="@+id/submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/time_picker_ll"
+            android:layout_below="@+id/cash_ll"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="30dp"
+            android:background="@drawable/custom_button"
+            android:elevation="@dimen/button_corner_radius"
             android:gravity="center"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
             android:text="@string/submit" />
 
     </RelativeLayout>

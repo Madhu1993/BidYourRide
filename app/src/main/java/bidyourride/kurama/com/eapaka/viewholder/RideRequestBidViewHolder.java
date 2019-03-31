@@ -1,0 +1,27 @@
+package bidyourride.kurama.com.eapaka.viewholder;
+
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.widget.TextView;
+
+import bidyourride.kurama.com.eapaka.R;
+
+/**
+ * Created by madhukurapati on 3/22/18.
+ */
+
+public class RideRequestBidViewHolder extends RecyclerView.ViewHolder {
+
+    public TextView authorView;
+    public TextView bidValue;
+    public TextView dateAndTime;
+
+    public RideRequestBidViewHolder(View itemView) {
+        super(itemView);
+
+        authorView = itemView.findViewById(R.id.bid_author);
+        bidValue = itemView.findViewById(R.id.item_bid_value);
+        dateAndTime = itemView.findViewById(R.id.time_stamp);
+    }
+
+}

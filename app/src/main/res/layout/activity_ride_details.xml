@@ -55,10 +55,10 @@
 
                 <com.uber.sdk.android.rides.RideRequestButton
                     android:id="@+id/uber_button"
-                    uber:ub__style="black"
                     android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_below="@+id/comment_share_ll"
-                    android:layout_height="wrap_content" />
+                    uber:ub__style="black" />
 
                 <com.lyft.lyftbutton.LyftButton
                     android:id="@+id/lyft_button"
@@ -75,7 +75,7 @@
                     android:paddingBottom="5dp"
                     android:paddingTop="2dp">
 
-                    <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                    <bidyourride.kurama.com.eapaka.view.CircleImageView
                         android:id="@+id/origin_image"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -103,7 +103,7 @@
                     android:paddingBottom="10dp"
                     android:paddingTop="5dp">
 
-                    <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                    <bidyourride.kurama.com.eapaka.view.CircleImageView
                         android:id="@+id/destination_image"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -138,7 +138,7 @@
                         android:paddingBottom="10dp"
                         android:paddingTop="5dp">
 
-                        <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                        <bidyourride.kurama.com.eapaka.view.CircleImageView
                             android:id="@+id/date_image"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -164,7 +164,7 @@
                         android:paddingBottom="10dp"
                         android:paddingTop="5dp">
 
-                        <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                        <bidyourride.kurama.com.eapaka.view.CircleImageView
                             android:id="@+id/time_image"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -199,7 +199,7 @@
                         android:paddingBottom="10dp"
                         android:paddingTop="5dp">
 
-                        <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                        <bidyourride.kurama.com.eapaka.view.CircleImageView
                             android:id="@+id/distance_image"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -225,7 +225,7 @@
                         android:paddingBottom="10dp"
                         android:paddingTop="5dp">
 
-                        <bidyourride.kurama.com.bidyourride.view.CircleImageView
+                        <bidyourride.kurama.com.eapaka.view.CircleImageView
                             android:id="@+id/duration_image"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -245,97 +245,93 @@
 
                 </LinearLayout>
 
-                <LinearLayout
+
+                <RelativeLayout
                     android:id="@+id/bid_ll"
-                    android:layout_width="fill_parent"
-                    android:layout_height="40dp"
-                    android:layout_below="@id/ll_distance_and_travel_time"
-                    android:gravity="center_horizontal"
-                    android:orientation="horizontal">
-
-                    <ImageButton
-                        android:id="@+id/dec_button"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.15"
-                        android:background="@drawable/button"
-                        android:scaleType="fitXY"
-                        android:src="@drawable/icon_minus_round_128" />
-
-                    <TextView
-                        android:id="@+id/price_tv"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.4"
-                        android:background="@color/sea"
-                        android:gravity="center"
-                        android:text="@string/initial_price"
-                        android:textColor="#000000" />
-
-                    <ImageButton
-                        android:id="@+id/inc_button"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.15"
-                        android:background="@drawable/button"
-                        android:scaleType="fitXY"
-                        android:src="@drawable/ic_add_black_48dp" />
-
-                    <Button
-                        android:id="@+id/bid_button"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.3"
-                        android:background="@color/submit"
-                        android:scaleType="fitXY"
-                        android:text="@string/bid" />
-                </LinearLayout>
-
-                <!--<LinearLayout
-                    android:id="@+id/bid_button_ll"
+                    android:layout_marginTop="20dp"
                     android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:layout_below="@+id/bid_ll"
-                    android:layout_marginTop="5dp"
-                    android:orientation="horizontal">
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/ll_distance_and_travel_time"
+                    android:gravity="center_horizontal">
 
-                    <View
-                        android:id="@+id/empty1"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginTop="10dp"
-                        android:layout_weight="0.2" />
+                    <LinearLayout
+                        android:id="@+id/edit_value_ll"
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp">
+
+                        <View
+                            android:id="@+id/bid_edit_empty1"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="0.25" />
+
+                        <ImageView
+                            android:id="@+id/dec_button"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.1"
+                            android:background="@color/person_count_button"
+                            android:scaleType="fitXY"
+                            android:src="@drawable/ic_remove_black_48dp" />
+
+                        <TextView
+                            android:id="@+id/price_tv"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="0.3"
+                            android:gravity="center"
+                            android:text="@string/initial_price"
+                            android:textColor="#000000" />
+
+                        <ImageView
+                            android:id="@+id/inc_button"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="0.1"
+                            android:background="@color/person_count_button"
+                            android:scaleType="fitXY"
+                            android:src="@drawable/ic_add_black_48dp" />
+
+                        <View
+                            android:id="@+id/bid_edit_empty2"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="10dp"
+                            android:layout_weight="0.25" />
+
+                    </LinearLayout>
 
                     <Button
                         android:id="@+id/bid_button"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd="40dp"
-                        android:layout_marginStart="40dp"
-                        android:layout_weight="0.6"
-                        android:background="@color/submit"
-                        android:scaleType="fitXY"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/edit_value_ll"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="20dp"
+                        android:background="@drawable/custom_button"
+                        android:elevation="@dimen/button_corner_radius"
+                        android:gravity="center"
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp"
                         android:text="@string/bid" />
 
-                    <View
-                        android:id="@+id/empty2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="0.2" />
-                </LinearLayout>-->
+                </RelativeLayout>
+
 
                 <TextView
                     android:id="@+id/tv_update_bid_details"
-                    android:layout_below="@id/bid_ll"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:textColor="@color/orange"
-                    android:layout_marginTop="10dp"
+                    android:layout_below="@id/bid_ll"
                     android:layout_centerHorizontal="true"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
                     android:maxLines="2"
-                    android:textSize="15sp"
                     android:textAllCaps="true"
-                    android:gravity="center"/>
+                    android:textColor="@color/orange"
+                    android:textSize="15sp" />
 
                 <Button
                     android:id="@+id/try_again_button"
@@ -354,9 +350,9 @@
                     android:layout_below="@+id/try_again_button"
                     android:layout_centerHorizontal="true"
                     android:gravity="center"
-                    android:textColor="@color/dark_grey"
+                    android:text="@string/top_rides"
                     android:textAllCaps="true"
-                    android:text="@string/top_rides" />
+                    android:textColor="@color/dark_grey" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/recylcer_bid_value"
@@ -393,8 +389,7 @@
                         android:layout_height="200dp"
                         android:layout_alignParentStart="true"
                         android:src="@drawable/ic_home_black_48dp"
-                        app:liteMode="true">
-                    </com.google.android.gms.maps.MapView>
+                        app:liteMode="true"></com.google.android.gms.maps.MapView>
                 </RelativeLayout>
 
             </android.support.design.widget.CollapsingToolbarLayout>

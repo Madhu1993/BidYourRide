@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Bid Your Ride</string>
+    <string name="app_name">EAP AKA</string>
     <string name="facebook_app_id">519123011821610</string>
     <string name="skip_for_now">Skip For Now</string>
     <string name="share">Share this Ride</string>
@@ -50,5 +50,10 @@
     <string name="top_3_bids">Top Five Bids</string>
     <string name="top_rides">Top Bids</string>
     <string name="try_again">Try Again</string>
+    <string name="cash_only">I understand payment is cash only</string>
+    <string name="no">NO</string>
+    <string name="yes">YES</string>
+    <string name="count">1</string>
+    <string name="max_person_error">We currently support max. 4 riders </string>
 
 </resources>

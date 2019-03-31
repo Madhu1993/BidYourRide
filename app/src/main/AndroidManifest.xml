@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="bidyourride.kurama.com.bidyourride">
+    package="bidyourride.kurama.com.eapaka">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -18,7 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,31 +26,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.SignInActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.SignInActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
 
         </activity>
 
-        <activity android:name=".activity.AddRideActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.AddRideActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
 
         </activity>
 
-        <activity android:name=".activity.RideDetailsActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.RideDetailsActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
 
         </activity>
 
-        <activity android:name=".activity.CommentsActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.CommentsActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
 
         </activity>
 
-        <activity android:name=".activity.BaseActivity"
+        <activity android:name="bidyourride.kurama.com.eapaka.auth.activity.BaseActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
 
