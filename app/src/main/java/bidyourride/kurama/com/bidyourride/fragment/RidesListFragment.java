@@ -65,6 +65,9 @@ public abstract class RidesListFragment extends Fragment {
 
         mRecycler = rootView.findViewById(R.id.rides_messages_list);
         mRecycler.setHasFixedSize(true);
+        Log.d(TAG, "onCreateView: ");
+        
+        
 
         return rootView;
     }
